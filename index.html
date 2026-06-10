@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Regents Survival Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { background: #0b0d0f; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0f1115; }
+    ::-webkit-scrollbar-thumb { background: #505a68; border-radius: 2px; }
+    textarea::placeholder { color: #505a68; }
+    button { transition: opacity 0.12s; cursor: pointer; }
+    button:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const C = {
+      bg: "#0b0d0f", sb: "#0f1115", sbBorder: "#181c22",
+      card: "#121518", cardBorder: "#1c2028",
+      t: "#e2e0dc", muted: "#505a68", dim: "#8590a0",
+      kin:  "#f59e0b",
+      frc:  "#4fc3f7",
+      ene:  "#6ee7b7",
+      mom:  "#c084fc",
+      wav:  "#67e8f9",
+      elec: "#fb923c",
+      mod:  "#f472b6",
+      pro:  "#a3e635",
+      err:  "#f87171",
+      ref:  "#94a3b8",
+      opt:  "#a78bfa",
+    };
+
+    const TABS = [
+      { id: "protocol", label: "\u2460 The Protocol" },
+      { id: "kin",      label: "\u2461 Kinematics" },
+      { id: "forces",   label: "\u2462 Forces" },
+      { id: "circular", label: "\u2463 Circular & Gravity" },
+      { id: "energy",   label: "\u2464 Energy" },
+      { id: "momentum", label: "\u2465 Momentum" },
+      { id: "waves",    label: "\u2466 Waves" },
+      { id: "optics",   label: "\u2467 Optics" },
+      { id: "elec",     label: "\u2468 Electricity" },
+      { id: "modern",   label: "\u2469 Modern Physics" },
+      { id: "qref",     label: "Quick Reference" },
+      { id: "traps",    label: "Common Mistakes" },
+      { id: "drills",   label: "\u26a1 Speed Drills" },
+      { id: "notes",    label: "Notes" },
+    ];
+
+    const DRILLS = [
+      { id: "K1", topic: "Kinematics", color: "kin",
+        problem: "A car starts from rest and accelerates at 3.0 m/s\u00b2. What is its speed after 4.0 s?",
+        answer: "12 m/s",
+        hint: "Use v = v\u2080 + at.  v\u2080 = 0 (starts from rest).\nv = 0 + (3.0)(4.0) = 12 m/s." },
+      { id: "K2", topic: "Kinematics", color: "kin",
+        problem: "A ball is dropped from rest. How far does it fall in 3.0 s?  (g = 9.81 m/s\u00b2)",
+        answer: "44.1 m",
+        hint: "Use \u0394x = v\u2080t + \u00bdAt\u00b2.  v\u2080 = 0, a = 9.81, t = 3.0.\n\u0394x = \u00bd(9.81)(3.0)\u00b2 = \u00bd(9.81)(9.0) = 44.1 m." },
+      { id: "K3", topic: "Kinematics", color: "kin",
+        problem: "A car traveling at 24 m/s decelerates uniformly to rest in 6.0 s. What is its acceleration?",
+        answer: "\u22124.0 m/s\u00b2",
+        hint: "a = \u0394v / t = (v_f \u2212 v\u2080) / t = (0 \u2212 24) / 6.0 = \u22124.0 m/s\u00b2.\nNegative sign means decelerating (opposing motion)." },
+      { id: "K4", topic: "Kinematics", color: "kin",
+        problem: "A ball is thrown straight upward at 20 m/s. How high does it rise?  (g = 9.81 m/s\u00b2)",
+        answer: "\u2248 20.4 m",
+        hint: "At max height v = 0.  Use v\u00b2 = v\u2080\u00b2 + 2a\u0394x.\n0 = (20)\u00b2 + 2(\u22129.81)\u0394x  \u2192  \u0394x = 400 / 19.62 \u2248 20.4 m." },
+      { id: "K5", topic: "Kinematics", color: "kin",
+        problem: "A velocity\u2013time graph has a constant positive slope. What does this tell you about the motion?",
+        answer: "Constant positive acceleration (speeding up in the positive direction)",
+        hint: "Slope of a v\u2013t graph = acceleration.\nConstant slope = constant acceleration.\nPositive slope = velocity is increasing." },
+      { id: "F1", topic: "Forces", color: "frc",
+        problem: "A net force of 36 N acts on a 12 kg box. What is its acceleration?",
+        answer: "3.0 m/s\u00b2",
+        hint: "F_net = ma  \u2192  a = F_net / m = 36 / 12 = 3.0 m/s\u00b2." },
+      { id: "F2", topic: "Forces", color: "frc",
+        problem: "A 70 kg person stands in an elevator accelerating upward at 2.0 m/s\u00b2. What is the normal force on them?  (g = 9.81 m/s\u00b2)",
+        answer: "827 N",
+        hint: "F_net = ma  \u2192  F_N \u2212 mg = ma  \u2192  F_N = m(g + a).\nF_N = 70 \u00d7 (9.81 + 2.0) = 70 \u00d7 11.81 = 826.7 \u2248 827 N.\nF_N is greater than weight because the elevator accelerates you upward." },
+      { id: "F3", topic: "Forces", color: "frc",
+        problem: "A 5.0 kg block slides on a surface with \u03bc_k = 0.30.  What is the kinetic friction force?  (g = 9.81 m/s\u00b2)",
+        answer: "14.7 N",
+        hint: "F_f = \u03bc_k \u00d7 F_N.  On a flat surface F_N = mg.\nF_f = 0.30 \u00d7 (5.0 \u00d7 9.81) = 0.30 \u00d7 49.05 = 14.7 N." },
+      { id: "F4", topic: "Forces", color: "frc",
+        problem: "Two forces act on an object: 30 N east and 40 N north. What is the magnitude of the net force?",
+        answer: "50 N",
+        hint: "Forces are perpendicular \u2014 use the Pythagorean theorem.\n|F_net| = \u221a(30\u00b2 + 40\u00b2) = \u221a(900 + 1600) = \u221a2500 = 50 N.\n(3\u20134\u20135 right triangle scaled by 10.)" },
+      { id: "C1", topic: "Circular Motion", color: "wav",
+        problem: "A 0.50 kg ball on a 1.5 m string moves in a horizontal circle at 4.0 m/s. What is the centripetal force?",
+        answer: "5.3 N",
+        hint: "F_c = mv\u00b2 / r = (0.50)(4.0)\u00b2 / 1.5 = (0.50)(16) / 1.5 = 8.0 / 1.5 \u2248 5.3 N.\nThis force is provided by the tension in the string." },
+      { id: "C2", topic: "Circular Motion", color: "wav",
+        problem: "The distance between two masses doubles. The gravitational force becomes what fraction of its original value?",
+        answer: "1/4 of the original force",
+        hint: "F_g = Gm\u2081m\u2082 / r\u00b2.  Force is inversely proportional to r\u00b2.\nDouble r  \u2192  r\u00b2 multiplied by 4  \u2192  force divided by 4.\nThis is the inverse-square law." },
+      { id: "E1", topic: "Energy", color: "ene",
+        problem: "A 3.0 kg ball moves at 10 m/s. What is its kinetic energy?",
+        answer: "150 J",
+        hint: "KE = \u00bdmv\u00b2 = \u00bd(3.0)(10)\u00b2 = \u00bd(3.0)(100) = 150 J." },
+      { id: "E2", topic: "Energy", color: "ene",
+        problem: "A 4.0 kg object is lifted 5.0 m. How much gravitational PE does it gain?  (g = 9.81 m/s\u00b2)",
+        answer: "196 J",
+        hint: "PE_g = mgh = (4.0)(9.81)(5.0) = 196.2 \u2248 196 J." },
+      { id: "E3", topic: "Energy", color: "ene",
+        problem: "A 2.0 kg ball drops from 8.0 m. What is its speed just before impact?  (ignore air resistance, g = 9.81 m/s\u00b2)",
+        answer: "\u2248 12.5 m/s",
+        hint: "Conservation of energy: mgh = \u00bdmv\u00b2  \u2192  v = \u221a(2gh).\nv = \u221a(2 \u00d7 9.81 \u00d7 8.0) = \u221a156.96 \u2248 12.5 m/s." },
+      { id: "E4", topic: "Energy", color: "ene",
+        problem: "A force of 50 N pushes a box 6.0 m at 60\u00b0 above horizontal. How much work is done on the box?",
+        answer: "150 J",
+        hint: "W = Fd cos\u03b8.  Only the horizontal component does work.\nW = (50)(6.0) cos 60\u00b0 = 300 \u00d7 0.50 = 150 J." },
+      { id: "M1", topic: "Momentum", color: "mom",
+        problem: "A 4.0 kg object moving at 6.0 m/s collides with and sticks to a stationary 2.0 kg object. What is their combined velocity?",
+        answer: "4.0 m/s",
+        hint: "Perfectly inelastic: m\u2081v\u2081 + m\u2082v\u2082 = (m\u2081 + m\u2082)v\u2019.\n(4.0)(6.0) + (2.0)(0) = (6.0)v\u2019  \u2192  24 = 6v\u2019  \u2192  v\u2019 = 4.0 m/s." },
+      { id: "M2", topic: "Momentum", color: "mom",
+        problem: "A 0.50 kg ball changes velocity from +8.0 m/s to \u22124.0 m/s. What is the impulse exerted on it?",
+        answer: "\u22126.0 N\u00b7s",
+        hint: "J = m\u0394v = m(v_f \u2212 v_i) = (0.50)(\u22124.0 \u2212 8.0) = (0.50)(\u221212.0) = \u22126.0 N\u00b7s.\nNegative = impulse in the negative direction." },
+      { id: "M3", topic: "Momentum", color: "mom",
+        problem: "A 60 kg person and a 40 kg raft are both at rest. The person jumps off at 3.0 m/s. What is the raft\u2019s velocity?",
+        answer: "\u22124.5 m/s (opposite direction)",
+        hint: "Total initial momentum = 0.\n60(3.0) + 40(v) = 0  \u2192  180 + 40v = 0  \u2192  v = \u22124.5 m/s.\nThe raft moves opposite to the person." },
+      { id: "W1", topic: "Waves", color: "wav",
+        problem: "A wave has a frequency of 440 Hz and a wavelength of 0.77 m. What is its speed?",
+        answer: "339 m/s",
+        hint: "v = f\u03bb = (440)(0.77) = 338.8 \u2248 339 m/s." },
+      { id: "W2", topic: "Waves", color: "wav",
+        problem: "A sound wave has a period of 0.0050 s. What is its frequency?",
+        answer: "200 Hz",
+        hint: "f = 1/T = 1/0.0050 = 200 Hz.\nPeriod and frequency are reciprocals." },
+      { id: "W3", topic: "Waves", color: "wav",
+        problem: "Light travels from water (n = 1.33) into air (n = 1.00) at 30\u00b0 from the normal. What is the refracted angle?  (sin 30\u00b0 = 0.500)",
+        answer: "\u2248 41.7\u00b0",
+        hint: "Snell\u2019s Law: n\u2081 sin\u03b8\u2081 = n\u2082 sin\u03b8\u2082.\n1.33 \u00d7 0.500 = 1.00 \u00d7 sin\u03b8\u2082  \u2192  sin\u03b8\u2082 = 0.665  \u2192  \u03b8\u2082 \u2248 41.7\u00b0.\nGoing to a less-dense medium, the ray bends away from the normal." },
+      { id: "EL1", topic: "Electricity", color: "elec",
+        problem: "A 9.0 V battery is connected to a 3.0 \u03a9 resistor. What current flows?",
+        answer: "3.0 A",
+        hint: "Ohm\u2019s Law: I = V / R = 9.0 / 3.0 = 3.0 A." },
+      { id: "EL2", topic: "Electricity", color: "elec",
+        problem: "Three 12 \u03a9 resistors are connected in parallel. What is the total resistance?",
+        answer: "4.0 \u03a9",
+        hint: "1/R_p = 1/12 + 1/12 + 1/12 = 3/12  \u2192  R_p = 12/3 = 4.0 \u03a9.\nParallel resistance is always less than the smallest individual resistor." },
+      { id: "EL3", topic: "Electricity", color: "elec",
+        problem: "A light bulb operates at 120 V and consumes 60 W. What is its resistance?",
+        answer: "240 \u03a9",
+        hint: "P = V\u00b2 / R  \u2192  R = V\u00b2 / P = (120)\u00b2 / 60 = 14400 / 60 = 240 \u03a9." },
+      { id: "MOD1", topic: "Modern Physics", color: "mod",
+        problem: "A photon has a frequency of 6.0 \u00d7 10\u00b9\u2074 Hz. What is its energy?  (h = 6.63 \u00d7 10\u207b\u00b3\u2074 J\u00b7s)",
+        answer: "3.98 \u00d7 10\u207b\u00b9\u2079 J",
+        hint: "E = hf = (6.63 \u00d7 10\u207b\u00b3\u2074)(6.0 \u00d7 10\u00b9\u2074) = 39.78 \u00d7 10\u207b\u00b2\u2070 = 3.98 \u00d7 10\u207b\u00b9\u2079 J." },
+      { id: "MOD2", topic: "Modern Physics", color: "mod",
+        problem: "Light above threshold frequency shines on a metal. You double the intensity while keeping frequency constant. What happens to: (a) number of ejected electrons, and (b) maximum KE of each electron?",
+        answer: "(a) doubles  \u2014  (b) no change",
+        hint: "Intensity = number of photons per second. More photons \u2192 more electrons ejected.\nBut KE_max = hf \u2212 \u03c6 depends only on frequency, not intensity.\nFrequency unchanged \u2192 KE_max unchanged." },
+      { id: "MOD3", topic: "Modern Physics", color: "mod",
+        problem: "A metal has work function \u03c6. What is the threshold frequency below which no electrons are ejected?",
+        answer: "f\u2080 = \u03c6 / h",
+        hint: "At threshold, KE_max = 0.\nFrom KE_max = hf \u2212 \u03c6: set 0 = hf\u2080 \u2212 \u03c6  \u2192  f\u2080 = \u03c6 / h.\nBelow this frequency, no electrons are ejected regardless of intensity." },
+    ];
+
+    const NOTE_SECTIONS = [
+      "General Notes", "Kinematics", "Forces", "Circular Motion & Gravity",
+      "Energy", "Momentum", "Waves", "Electricity", "Modern Physics", "My Personal Traps",
+    ];
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    // ─── Shared components ────────────────────────────────────────────────────
+
+    function Card({ color, children, style: s }) {
+      return (
+        <div style={{
+          background: C.card, border: `0.5px solid ${C.cardBorder}`,
+          borderLeft: `3px solid ${color || C.muted}`,
+          borderRadius: 12, padding: "18px 22px", marginBottom: 16, ...s,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function MathBox({ children, color }) {
+      return (
+        <div style={{
+          background: "#0e1014", border: `1px solid ${(color || C.muted) + "44"}`,
+          borderRadius: 8, padding: "12px 16px", margin: "10px 0",
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 13.5,
+          color: color || C.t, lineHeight: 1.9, whiteSpace: "pre-wrap",
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function SectionTitle({ children, color }) {
+      return (
+        <div style={{
+          fontFamily: "'Lora', serif", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.12em", textTransform: "uppercase",
+          color: color || C.dim, marginBottom: 10, marginTop: 4,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function Badge({ children, color }) {
+      return (
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5,
+          background: `${color}22`, color, border: `0.5px solid ${color}55`,
+          borderRadius: 5, padding: "2px 8px", marginRight: 6, display: "inline-block",
+        }}>
+          {children}
+        </span>
+      );
+    }
+
+    function TrapBox({ children }) {
+      return (
+        <div style={{
+          background: `${C.err}0f`, border: `0.5px solid ${C.err}44`,
+          borderLeft: `3px solid ${C.err}`, borderRadius: 8,
+          padding: "10px 14px", margin: "8px 0",
+          fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    // ─── Tab: Protocol ────────────────────────────────────────────────────────
+
+    function ProtocolTab() {
+      const steps = [
+        { n: "1", label: "GIVENS", color: C.kin,
+          body: `Every number with its unit and variable.\n\n"Starts from rest"   \u2192   v\u2080 = 0\n"Comes to a stop"    \u2192   v_f = 0\n"Constant velocity"  \u2192   a = 0\n"In free fall"       \u2192   a = g = 9.81 m/s\u00b2 downward\n\nWrite down zeros. Don't keep them in your head.` },
+        { n: "2", label: "UNKNOWN", color: C.frc,
+          body: `What is the question actually asking for?\n\nCircle it or write it with a question mark.\nDon't solve for the first variable you can reach \u2014 solve for what's asked.` },
+        { n: "3", label: "EQUATION", color: C.ene,
+          body: `Write the general formula FIRST \u2014 before plugging in anything.\n\nF_net = ma          \u2190 correct\nF_net = 5 \u00d7 3       \u2190 wrong (numbers before formula)\n\nThis catches algebra errors before they happen.` },
+        { n: "4", label: "PLUG IN", color: C.mom,
+          body: `Numbers WITH units.\n\nF_net = (5 kg)(3 m/s\u00b2) = 15 N\n\nIf units on both sides don't match, you used the wrong equation.` },
+        { n: "5", label: "SOLVE", color: C.wav,
+          body: `Step by step. Don't skip lines under exam pressure.\nOne algebra step per line. Errors compound when you rush.` },
+        { n: "6", label: "CHECK", color: C.pro,
+          body: `Right units? Reasonable magnitude? Correct sign?\nDoes the answer make physical sense?\n\n"The car decelerated at 9800 m/s\u00b2" \u2014 that's 1000 g's. Something is wrong.\n"The electron has mass 400 kg" \u2014 that's a person. Something is wrong.` },
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>The Protocol</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Every physics problem. No exceptions. Write this on your scratch paper.</div>
+          {steps.map(s => (
+            <Card key={s.n} color={s.color}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, color: s.color, minWidth: 28 }}>{s.n}</span>
+                <span style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: 15, color: s.color }}>{s.label}</span>
+              </div>
+              <MathBox color={s.color}>{s.body}</MathBox>
+            </Card>
+          ))}
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>The #1 Mistake</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.7 }}>
+              Not writing down givens. If you hold numbers in your head, you will drop them. The protocol is most necessary under pressure \u2014 not least.
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Kinematics ─────────────────────────────────────────────────────
+
+    function KinematicsTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.kin, marginBottom: 6 }}>Kinematics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Motion in one dimension. All four equations assume constant acceleration.</div>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>The Big Four Equations</SectionTitle>
+            <MathBox color={C.kin}>{`v   = v\u2080 + at           \u2192 no displacement needed
+\u0394x  = v\u2080t + \u00bdAt\u00b2        \u2192 no final velocity needed
+v\u00b2  = v\u2080\u00b2 + 2a\u0394x        \u2192 no time needed
+\u0394x  = \u00bd(v + v\u2080)t        \u2192 no acceleration needed`}</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.dim, lineHeight: 1.7, marginTop: 8 }}>
+              <strong style={{ color: C.kin }}>How to choose:</strong> Write your givens. Find the missing variable. Pick the equation that does <em>not</em> contain the missing variable.
+            </div>
+          </Card>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>Critical Givens \u2014 Write These Down</SectionTitle>
+            {[
+              ["Starts from rest", "v\u2080 = 0"],
+              ["Comes to a stop", "v_f = 0"],
+              ["Constant velocity", "a = 0   \u2192   use \u0394x = vt"],
+              ["Free fall, upward positive", "a = \u22129.81 m/s\u00b2"],
+              ["At maximum height in free fall", "v = 0   (but a = \u2212g still \u2014 gravity never turns off)"],
+            ].map(([cue, val]) => (
+              <div key={cue} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12.5, color: C.dim, minWidth: 200 }}>{cue}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: C.kin }}>{val}</span>
+              </div>
+            ))}
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Graph Interpretation</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.kin }}>Position\u2013time:</strong> slope = velocity. Flat = stopped. Straight = constant velocity. Curve = acceleration present.<br/>
+              <strong style={{ color: C.kin }}>Velocity\u2013time:</strong> slope = acceleration. Area under curve = displacement. Below x-axis = moving in negative direction.<br/>
+              <strong style={{ color: C.kin }}>Acceleration\u2013time:</strong> area = change in velocity.
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Displacement \u2260 distance. Displacement is net change in position. Distance is total path length.</TrapBox>
+            <TrapBox>Gravity is 9.81 m/s\u00b2 downward. If upward is positive, write a = \u22129.81. The sign is not optional.</TrapBox>
+            <TrapBox>At maximum height: v = 0, but acceleration is still \u2212g. The ball is still in free fall at the top \u2014 gravity doesn\u2019t pause.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Forces ─────────────────────────────────────────────────────────
+
+    function ForcesTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.frc, marginBottom: 6 }}>Forces & Newton\u2019s Laws</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Every force problem starts with a free body diagram. Draw the object as a dot. Draw every force as an arrow. Label. Then write F_net = ma.</div>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Newton\u2019s Three Laws</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.frc }}>First \u2014 Inertia:</strong> An object at rest stays at rest; an object in motion stays in motion at constant velocity, unless a net force acts. If velocity is constant (or zero), net force = 0.<br/><br/>
+              <strong style={{ color: C.frc }}>Second \u2014 F = ma:</strong> Net force causes acceleration. Direction of acceleration equals direction of net force.<br/><br/>
+              <strong style={{ color: C.frc }}>Third \u2014 Action\u2013Reaction:</strong> If A exerts force F on B, then B exerts force F on A in the opposite direction. These forces act on <em>different</em> objects.
+            </div>
+          </Card>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Key Equations</SectionTitle>
+            <MathBox color={C.frc}>{`F_net      = ma
+F_g        = mg               (weight \u2014 always points downward)
+F_f        = \u03bcF_N            (friction \u2014 opposes direction of motion)
+On incline:   F_N = mg cos\u03b8  \u2190 NOT just mg
+On incline:   F_\u2225 = mg sin\u03b8  (component of gravity along the ramp)`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Normal force is NOT always mg. On an incline it is mg cos\u03b8. In an elevator accelerating upward it is m(g + a).</TrapBox>
+            <TrapBox>Static friction: F_f \u2264 \u03bc_s F_N. The actual value is whatever it needs to be, up to the maximum. Kinetic friction: F_f = \u03bc_k F_N (constant while sliding).</TrapBox>
+            <TrapBox>"Weightless" does NOT mean no gravity. It means no normal force \u2014 the object is in free fall. Gravity still acts at full strength.</TrapBox>
+            <TrapBox>Action\u2013reaction pairs act on DIFFERENT objects. They do not cancel in a single free body diagram.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Circular ────────────────────────────────────────────────────────
+
+    function CircularTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.wav, marginBottom: 6 }}>Circular Motion & Gravity</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Before writing any equation, ask: "What physical force is pointing toward the center?"</div>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Key Equations</SectionTitle>
+            <MathBox color={C.wav}>{`F_c = mv\u00b2/r         (centripetal force \u2014 always toward center)
+a_c = v\u00b2/r          (centripetal acceleration \u2014 toward center)
+F_g = Gm\u2081m\u2082/r\u00b2     (Newton\u2019s Law of Universal Gravitation)
+v   = 2\u03c0r/T         (orbital speed \u2014 T is period, one full revolution)`}</MathBox>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>What Provides the Centripetal Force?</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              Centripetal force is <strong style={{ color: C.wav }}>not a new kind of force</strong>. It is provided by one of the real forces already present:<br/>
+              \u2022 Tension \u2014 ball on a string<br/>
+              \u2022 Gravity \u2014 satellites, planets<br/>
+              \u2022 Friction \u2014 car turning on a road<br/>
+              \u2022 Normal force \u2014 roller coaster loop
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Vertical Circle Analysis</SectionTitle>
+            <MathBox>{`Top of loop:    F_N + mg = mv\u00b2/r
+  Both F_N and mg point downward (toward center).
+
+Bottom of loop: F_N \u2212 mg = mv\u00b2/r
+  F_N points up (toward center), mg points down (away from center).
+
+At top, minimum speed: F_N = 0  \u2192  mg = mv\u00b2/r  \u2192  v_min = \u221a(gr)`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Centrifugal force is not a real force. It is a sensation in a rotating frame. Never draw it on a free body diagram.</TrapBox>
+            <TrapBox>Gravity obeys an inverse-square law. Double the distance \u2192 one-quarter the force. Not one-half.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Energy ─────────────────────────────────────────────────────────
+
+    function EnergyTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ene, marginBottom: 6 }}>Energy</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Conservation of energy is the most powerful single tool in physics. Know when it applies \u2014 and when it doesn\u2019t.</div>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Key Equations</SectionTitle>
+            <MathBox color={C.ene}>{`KE    = \u00bdmv\u00b2             (kinetic energy)
+PE_g  = mgh              (gravitational potential energy)
+PE_s  = \u00bdkx\u00b2             (elastic potential energy \u2014 springs)
+W     = Fd cos\u03b8         (work \u2014 F \u00d7 displacement in direction of force)
+P     = W/t = Fv         (power \u2014 rate of doing work)
+W_net = \u0394KE              (work\u2013energy theorem)`}</MathBox>
+          </Card>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Conservation of Energy</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.7, marginBottom: 8 }}>
+              If only conservative forces act (gravity, springs \u2014 <strong style={{ color: C.err }}>not friction</strong>):
+            </div>
+            <MathBox color={C.ene}>KE_i + PE_i  =  KE_f + PE_f</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.dim, lineHeight: 1.7, marginTop: 6 }}>
+              If friction is present, mechanical energy is not conserved. The "lost" energy becomes thermal energy (heat). W_friction = \u0394E_mechanical (negative).
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Holding a heavy box stationary = NO work done. Work requires displacement in the direction of the force.</TrapBox>
+            <TrapBox>Carrying a box horizontally at constant height = NO work done by gravity. Force is vertical, displacement is horizontal. cos 90\u00b0 = 0.</TrapBox>
+            <TrapBox>KE depends on v\u00b2. Double the speed \u2192 quadruple the kinetic energy. Don\u2019t forget the square.</TrapBox>
+            <TrapBox>The reference height for PE_g is a choice. Only changes in height matter \u2014 set h = 0 wherever it simplifies the problem.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Momentum ───────────────────────────────────────────────────────
+
+    function MomentumTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.mom, marginBottom: 6 }}>Momentum</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Momentum is a vector. Assign positive and negative directions before writing any equation.</div>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Key Equations</SectionTitle>
+            <MathBox color={C.mom}>{`p = mv                              (momentum \u2014 vector, same direction as v)
+J = F\u0394t = \u0394p                        (impulse = change in momentum)
+\u03a3p_before = \u03a3p_after                (conservation \u2014 closed system only)`}</MathBox>
+          </Card>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Types of Collisions</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.mom }}>Elastic:</strong> Both momentum and kinetic energy conserved. Objects bounce.
+              <MathBox color={C.mom}>m\u2081v\u2081 + m\u2082v\u2082 = m\u2081v\u2081\u2019 + m\u2082v\u2082\u2019</MathBox>
+              <strong style={{ color: C.mom }}>Inelastic:</strong> Momentum conserved. Kinetic energy lost to heat, sound, or deformation.<br/><br/>
+              <strong style={{ color: C.mom }}>Perfectly inelastic:</strong> Objects stick together.
+              <MathBox color={C.mom}>m\u2081v\u2081 + m\u2082v\u2082 = (m\u2081 + m\u2082)v\u2019</MathBox>
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>In an explosion, total momentum is conserved. If the system started at rest, all fragment momenta must sum to zero.</TrapBox>
+            <TrapBox>Impulse = area under a force\u2013time graph. This appears frequently as a graph-reading question on the exam.</TrapBox>
+            <TrapBox>Longer contact time \u2192 greater impulse for the same average force \u2192 greater change in momentum. This is why follow-through in sports matters.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Waves ──────────────────────────────────────────────────────────
+
+    function WavesTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.wav, marginBottom: 6 }}>Waves</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Frequency never changes when a wave enters a new medium. This is the single most-tested wave fact.</div>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Key Equations</SectionTitle>
+            <MathBox color={C.wav}>{`v = f\u03bb                      (wave speed = frequency \u00d7 wavelength)
+T = 1/f                     (period = 1 / frequency)
+n\u2081 sin\u03b8\u2081 = n\u2082 sin\u03b8\u2082      (Snell\u2019s Law \u2014 refraction at a boundary)
+sin\u03b8_c = n\u2082/n\u2081             (critical angle \u2014 for total internal reflection)`}</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim, marginTop: 6, lineHeight: 1.7 }}>
+              Critical angle applies when going from a denser medium (larger n) into a less dense medium (smaller n). At the critical angle, the refracted ray travels along the boundary.
+            </div>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Wave Types</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.wav }}>Transverse:</strong> Particles vibrate perpendicular to wave travel. Examples: light, string waves, all EM waves. Has crests and troughs.<br/><br/>
+              <strong style={{ color: C.wav }}>Longitudinal:</strong> Particles vibrate parallel to wave travel. Example: sound. Has compressions and rarefactions.
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Key Wave Phenomena</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.wav }}>Reflection:</strong> \u03b8_incidence = \u03b8_reflection. Both measured from the normal (perpendicular to surface), not the surface itself.<br/>
+              <strong style={{ color: C.wav }}>Refraction:</strong> Bends toward normal when slowing down (denser medium). Bends away when speeding up.<br/>
+              <strong style={{ color: C.wav }}>Diffraction:</strong> Effect largest when opening width \u2248 wavelength.<br/>
+              <strong style={{ color: C.wav }}>Standing waves:</strong> Nodes = no movement. Antinodes = max displacement. Distance between adjacent nodes = \u03bb/2.<br/>
+              <strong style={{ color: C.wav }}>Doppler effect:</strong> Source toward observer \u2192 higher frequency. Source away \u2192 lower frequency.
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Frequency NEVER changes when a wave changes medium. Speed and wavelength change. Frequency is set by the source.</TrapBox>
+            <TrapBox>Amplitude controls loudness (sound) or brightness (light). Frequency controls pitch (sound) or color (light). These are independent.</TrapBox>
+            <TrapBox>Reflection angles are measured from the NORMAL \u2014 the line perpendicular to the surface \u2014 not from the surface itself.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Electricity ────────────────────────────────────────────────────
+
+    function ElectricityTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.elec, marginBottom: 6 }}>Electricity & Magnetism</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Series vs. parallel is the core of every circuit problem. Get the rule table into memory before the exam.</div>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Key Equations</SectionTitle>
+            <MathBox color={C.elec}>{`V   = IR                           (Ohm\u2019s Law)
+P   = IV = I\u00b2R = V\u00b2/R             (power \u2014 three equivalent forms)
+R_s = R\u2081 + R\u2082 + \u2026                 (series resistance \u2014 adds directly)
+1/R_p = 1/R\u2081 + 1/R\u2082 + \u2026          (parallel resistance \u2014 reciprocal sum)
+F_e = kq\u2081q\u2082/r\u00b2                    (Coulomb\u2019s Law)
+E   = F/q                          (electric field = force per unit charge)`}</MathBox>
+          </Card>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Series vs. Parallel</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[
+                { title: "Series", items: ["Current is the SAME throughout", "Voltage DIVIDES across each resistor", "Total resistance ADDS directly", "One component fails \u2192 all fail"] },
+                { title: "Parallel", items: ["Voltage is the SAME across each branch", "Current DIVIDES at each junction", "Total resistance less than smallest R", "One component fails \u2192 others keep working"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.elec}44`, borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: C.elec, marginBottom: 8 }}>{col.title}</div>
+                  {col.items.map(it => (
+                    <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.9 }}>\u2022 {it}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>In series, adding more resistors INCREASES total resistance. In parallel, adding more resistors DECREASES total resistance (more paths for current).</TrapBox>
+            <TrapBox>Ammeter: connected in SERIES (measures current flowing through it). Voltmeter: connected in PARALLEL (measures voltage across something).</TrapBox>
+            <TrapBox>Coulomb\u2019s Law: like charges repel, opposite charges attract. Electric field lines go FROM positive TO negative.</TrapBox>
+            <TrapBox>For a device at non-rated voltage: find R from P = V\u00b2/R at rated voltage, then use that R for the new voltage.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Modern Physics ─────────────────────────────────────────────────
+
+    function ModernTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.mod, marginBottom: 6 }}>Modern Physics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Photon energy depends on frequency, not intensity. This distinction drives most of the exam questions here.</div>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Key Equations</SectionTitle>
+            <MathBox color={C.mod}>{`E       = hf                (photon energy \u2014 h = 6.63 \u00d7 10\u207b\u00b3\u2074 J\u00b7s)
+p       = h/\u03bb               (photon momentum \u2014 light carries momentum with no rest mass)
+E       = mc\u00b2               (mass\u2013energy equivalence)
+KE_max  = hf \u2212 \u03c6            (photoelectric effect)
+                             \u03c6 = work function = minimum energy to eject an electron`}</MathBox>
+          </Card>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Photoelectric Effect \u2014 The Three Rules</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.mod }}>Rule 1:</strong> Light below the threshold frequency f\u2080 = \u03c6/h will not eject electrons \u2014 no matter how intense.<br/>
+              <strong style={{ color: C.mod }}>Rule 2:</strong> Above threshold, increasing intensity increases the <em>number</em> of electrons ejected \u2014 not their energy.<br/>
+              <strong style={{ color: C.mod }}>Rule 3:</strong> Above threshold, increasing frequency increases the maximum <em>kinetic energy</em> of ejected electrons: KE_max = hf \u2212 \u03c6.
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Wave\u2013Particle Duality</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.8 }}>
+              Light behaves as a wave (interference, diffraction) and as a particle (photoelectric effect).<br/>
+              Electrons also behave as both \u2014 confirmed by electron diffraction experiments.<br/>
+              The speed of light in vacuum (c = 3.00 \u00d7 10\u2078 m/s) is constant for all observers regardless of their motion.
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>E = hf is energy per photon. Intensity = number of photons per second. These are completely independent quantities.</TrapBox>
+            <TrapBox>E = mc\u00b2: in nuclear reactions, the "missing mass" literally became energy. Mass and energy are the same thing in different form.</TrapBox>
+            <TrapBox>p = h/\u03bb: light carries momentum. Solar sails and comet tails are direct physical consequences of this.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Quick Reference ────────────────────────────────────────────────
+
+    function QuickRefTab() {
+      const eqTable = [
+        { topic: "Kinematics", eqs: "v = v\u2080+at  |  \u0394x = v\u2080t+\u00bdAt\u00b2  |  v\u00b2 = v\u2080\u00b2+2a\u0394x  |  \u0394x = \u00bd(v+v\u2080)t" },
+        { topic: "Forces",     eqs: "F_net = ma  |  F_g = mg  |  F_f = \u03bcF_N" },
+        { topic: "Incline",    eqs: "F_N = mg cos\u03b8  |  F_\u2225 = mg sin\u03b8" },
+        { topic: "Circular",   eqs: "F_c = mv\u00b2/r  |  a_c = v\u00b2/r  |  v = 2\u03c0r/T" },
+        { topic: "Gravity",    eqs: "F_g = Gm\u2081m\u2082/r\u00b2" },
+        { topic: "Energy",     eqs: "KE = \u00bdmv\u00b2  |  PE_g = mgh  |  PE_s = \u00bdkx\u00b2  |  W = Fd cos\u03b8  |  P = W/t" },
+        { topic: "Momentum",   eqs: "p = mv  |  J = F\u0394t = \u0394p  |  \u03a3p_before = \u03a3p_after" },
+        { topic: "Waves",      eqs: "v = f\u03bb  |  T = 1/f  |  n\u2081 sin\u03b8\u2081 = n\u2082 sin\u03b8\u2082" },
+        { topic: "Electricity",eqs: "V = IR  |  P = IV = I\u00b2R = V\u00b2/R  |  R_s = \u03a3R  |  1/R_p = \u03a3(1/R)" },
+        { topic: "Modern",     eqs: "E = hf  |  E = mc\u00b2  |  KE_max = hf\u2212\u03c6  |  p = h/\u03bb" },
+      ];
+      const units = [
+        ["Force F","Newton (N)"],["Energy / Work","Joule (J)"],["Power P","Watt (W)"],
+        ["Current I","Ampere (A)"],["Voltage V","Volt (V)"],["Resistance R","Ohm (\u03a9)"],
+        ["Frequency f","Hertz (Hz)"],["Wavelength \u03bb","Meter (m)"],
+        ["Momentum p","kg\u00b7m/s"],["Charge q","Coulomb (C)"],
+      ];
+      const constants = [
+        ["g","9.81 m/s\u00b2"],["c","3.00 \u00d7 10\u2078 m/s"],["h","6.63 \u00d7 10\u207b\u00b3\u2074 J\u00b7s"],
+        ["G","6.67 \u00d7 10\u207b\u00b9\u00b9 N\u00b7m\u00b2/kg\u00b2"],["k","8.99 \u00d7 10\u2079 N\u00b7m\u00b2/C\u00b2"],
+      ];
+      const prefixes = [
+        ["kilo (k)","10\u00b3"],["centi (c)","10\u207b\u00b2"],["milli (m)","10\u207b\u00b3"],
+        ["micro (\u03bc)","10\u207b\u2076"],["nano (n)","10\u207b\u2079"],
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ref, marginBottom: 6 }}>Quick Reference</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>All equations, units, and constants on one page.</div>
+          <Card color={C.ref}>
+            <SectionTitle color={C.ref}>All Equations</SectionTitle>
+            {eqTable.map((row, i) => (
+              <div key={row.topic} style={{ display: "flex", gap: 16, padding: "8px 0", borderBottom: i < eqTable.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: C.dim, minWidth: 110 }}>{row.topic}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t, lineHeight: 1.8 }}>{row.eqs}</span>
+              </div>
+            ))}
+          </Card>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Card color={C.ref}>
+              <SectionTitle color={C.ref}>Units</SectionTitle>
+              {units.map(([q, u]) => (
+                <div key={q} style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim }}>{q}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t }}>{u}</span>
+                </div>
+              ))}
+            </Card>
+            <div>
+              <Card color={C.ref}>
+                <SectionTitle color={C.ref}>Constants</SectionTitle>
+                {constants.map(([sym, val]) => (
+                  <div key={sym} style={{ display: "flex", gap: 10, marginBottom: 7 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref, minWidth: 14 }}>{sym}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t }}>{val}</span>
+                  </div>
+                ))}
+              </Card>
+              <Card color={C.ref}>
+                <SectionTitle color={C.ref}>Prefixes</SectionTitle>
+                {prefixes.map(([p, v]) => (
+                  <div key={p} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim }}>{p}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref }}>{v}</span>
+                  </div>
+                ))}
+              </Card>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Tab: Common Mistakes ────────────────────────────────────────────────
+
+    function TrapsTab() {
+      const traps = [
+        { n:"01", topic:"Kinematics", tc:"kin", trap:"Forgetting to write v\u2080 = 0 when an object \u2018starts from rest.\u2019", fix:"Write down ALL givens, including zeros. Zeros are information \u2014 dropping them is how the arithmetic breaks." },
+        { n:"02", topic:"Forces", tc:"frc", trap:"Using mg for the normal force on an incline.", fix:"F_N = mg cos\u03b8 on an incline. Always. Draw the free body diagram before writing any equation." },
+        { n:"03", topic:"Circular Motion", tc:"wav", trap:"Treating centripetal force as a separate force that exists on its own.", fix:"Ask: \u2018What physical force is pointing toward the center?\u2019 That force is the centripetal force. Never an extra force." },
+        { n:"04", topic:"Momentum", tc:"mom", trap:"Forgetting that momentum is a vector.", fix:"Assign a positive direction and a negative direction at the start of every collision or impulse problem." },
+        { n:"05", topic:"Waves", tc:"wav", trap:"Thinking period and frequency are the same thing.", fix:"T = 1/f. Period = seconds per cycle. Frequency = cycles per second. They are reciprocals." },
+        { n:"06", topic:"Waves", tc:"wav", trap:"Thinking frequency changes when a wave enters a new medium.", fix:"Frequency NEVER changes. Only wave speed and wavelength change. The source controls the frequency." },
+        { n:"07", topic:"Energy", tc:"ene", trap:"Forgetting to square the velocity in the kinetic energy formula.", fix:"KE = \u00bdmv\u00b2. Double the speed \u2192 four times the kinetic energy. The exponent matters." },
+        { n:"08", topic:"Electricity", tc:"elec", trap:"Applying the series formula in a parallel circuit (or vice versa).", fix:"Series: add R directly (result is larger). Parallel: reciprocal sum (result is smaller than the smallest R)." },
+        { n:"09", topic:"Modern Physics", tc:"mod", trap:"Confusing photon energy with light intensity.", fix:"E = hf is energy per individual photon. Intensity = number of photons per second. They are independent." },
+        { n:"10", topic:"Kinematics", tc:"kin", trap:"Picking a kinematics equation before identifying the missing variable.", fix:"Write givens first. Identify what\u2019s missing. Pick the equation that does not contain the missing variable." },
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.err, marginBottom: 6 }}>Common Mistakes</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>The ten highest-frequency error patterns. Each trap has a fix.</div>
+          {traps.map(t => (
+            <Card key={t.n} color={C.err}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 18, color: C.err, minWidth: 28 }}>{t.n}</span>
+                <Badge color={C[t.tc]}>{t.topic}</Badge>
+              </div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 8 }}>
+                <strong style={{ color: C.err }}>Trap: </strong>{t.trap}
+              </div>
+              <div style={{ background: `${C.ene}0f`, border: `0.5px solid ${C.ene}33`, borderRadius: 6, padding: "9px 13px", fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.ene, lineHeight: 1.6 }}>
+                <strong>Fix: </strong>{t.fix}
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    // ─── Tab: Optics ─────────────────────────────────────────────────────────
+
+    function OpticsTab() {
+      const signRows = [
+        ["f (focal length)", "Converging mirror/lens", "Diverging mirror/lens"],
+        ["d_o (object dist.)", "Real object \u2014 always", "Virtual object \u2014 rare"],
+        ["d_i (image dist.)", "Real image (same side as reflected/refracted light)", "Virtual image (opposite side)"],
+        ["M (magnification)", "Upright image", "Inverted image"],
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.opt, marginBottom: 6 }}>Optics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Mirrors, lenses, reflection, and refraction. Every angle is measured from the normal \u2014 never from the surface itself.</div>
+
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Key Equations</SectionTitle>
+            <MathBox color={C.opt}>{`n\u2081 sin \u03b8\u2081 = n\u2082 sin \u03b8\u2082       (Snell\u2019s Law \u2014 refraction at a boundary)\nsin \u03b8_c = n\u2082/n\u2081               (critical angle \u2014 total internal reflection, n\u2081 > n\u2082)\n1/f = 1/d_o + 1/d_i           (mirror and lens equation)\nM = \u2212d_i/d_o = h_i/h_o        (magnification \u2014 negative M = inverted image)\nn = c/v                        (index of refraction \u2014 n \u2265 1 always)\nc = f\u03bb = 3.00 \u00d7 10\u2078 m/s       (light in vacuum \u2014 same wave equation as all waves)`}</MathBox>
+          </Card>
+
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Reflection \u2014 Mirrors</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.8, marginBottom: 12 }}>
+              <strong style={{ color: C.opt }}>Law of Reflection:</strong> \u03b8_incidence = \u03b8_reflection. Both measured from the <em>normal</em> (line perpendicular to the surface), not from the surface itself.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              {[
+                { title: "Plane (flat) mirror", items: ["Virtual image (behind the mirror)", "Image distance = object distance", "Magnification = 1 (same size, upright)", "Left\u2013right reversed"] },
+                { title: "Concave mirror (curves inward)", items: ["f = R/2 \u2014 positive", "Real image when d_o > f", "Virtual image when d_o < f", "Can magnify (makeup mirrors)"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.opt}44`, borderRadius: 8, padding: "10px 13px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.opt, marginBottom: 7 }}>{col.title}</div>
+                  {col.items.map(it => <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>\u2022 {it}</div>)}
+                </div>
+              ))}
+            </div>
+            <div style={{ background: "#0e1014", border: `0.5px solid ${C.opt}44`, borderRadius: 8, padding: "10px 13px", marginBottom: 12 }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.opt, marginBottom: 7 }}>Convex mirror (curves outward)</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>f is negative. Always produces virtual, upright, reduced images \u2014 no exceptions regardless of object distance. Used for wide-angle coverage (security mirrors, car side mirrors).</div>
+            </div>
+            <SectionTitle color={C.dim}>Ray Diagram Rules \u2014 Mirrors</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              \u2022 Ray parallel to principal axis \u2192 reflects through the focal point.<br/>
+              \u2022 Ray through the focal point \u2192 reflects parallel to the principal axis.<br/>
+              \u2022 Ray through the center of curvature \u2192 reflects straight back on itself.<br/>
+              Image: where reflected rays intersect (real image, in front) or where their extensions behind the mirror intersect (virtual image).
+            </div>
+          </Card>
+
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Refraction &amp; Lenses</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9, marginBottom: 12 }}>
+              <strong style={{ color: C.frc }}>Index of refraction:</strong> n = c/v. n \u2265 1 always. Higher n means light travels slower in that medium.<br/>
+              \u2022 Entering a denser medium (higher n) \u2192 bends <strong style={{ color: C.frc }}>toward</strong> the normal.<br/>
+              \u2022 Entering a less dense medium (lower n) \u2192 bends <strong style={{ color: C.frc }}>away</strong> from the normal.<br/><br/>
+              <strong style={{ color: C.frc }}>Total Internal Reflection:</strong> When light goes from high n to low n at an angle greater than the critical angle \u03b8_c, 100% of the light reflects \u2014 none passes through. Only possible going from high n to low n. This is how fiber optics work.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              {[
+                { title: "Converging (convex) lens", items: ["Thicker in the middle", "f is positive", "Real image when d_o > f", "Virtual image when d_o < f"] },
+                { title: "Diverging (concave) lens", items: ["Thinner in the middle", "f is negative", "Always virtual, upright, reduced", "Never produces a real image"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.frc}44`, borderRadius: 8, padding: "10px 13px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.frc, marginBottom: 7 }}>{col.title}</div>
+                  {col.items.map(it => <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>\u2022 {it}</div>)}
+                </div>
+              ))}
+            </div>
+            <SectionTitle color={C.dim}>Ray Diagram Rules \u2014 Lenses</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              \u2022 Ray parallel to principal axis \u2192 refracts through the focal point on the far side.<br/>
+              \u2022 Ray through the center of the lens \u2192 passes straight through with no bending.<br/>
+              \u2022 Ray through the focal point on the object side \u2192 emerges parallel to the principal axis.<br/>
+              Image: where refracted rays intersect on the far side (real image) or where back-extensions intersect on the same side as the object (virtual image).
+            </div>
+          </Card>
+
+          <Card color={C.ref}>
+            <SectionTitle color={C.ref}>Sign Conventions \u2014 Memorize These</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "130px 1fr 1fr", rowGap: 0 }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.dim, padding: "7px 0 7px 0", borderBottom: `0.5px solid ${C.cardBorder}` }}>Quantity</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.ene, padding: "7px 8px", borderBottom: `0.5px solid ${C.cardBorder}` }}>Positive (+)</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.err, padding: "7px 8px", borderBottom: `0.5px solid ${C.cardBorder}` }}>Negative (\u2212)</span>
+              {signRows.map(([q, pos, neg], i) => (
+                <React.Fragment key={q}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref, padding: "7px 0", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{q}</span>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, padding: "7px 8px", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{pos}</span>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, padding: "7px 8px", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{neg}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </Card>
+
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>The angle in Snell\u2019s Law is measured from the NORMAL, not from the surface. Measuring from the surface gives the wrong angle \u2014 this costs points constantly.</TrapBox>
+            <TrapBox>Total internal reflection ONLY happens when light goes from HIGH n to LOW n (denser to less dense). Never the reverse.</TrapBox>
+            <TrapBox>For mirrors: f = R/2. A mirror with radius of curvature 20 cm has f = 10 cm. Don\u2019t substitute R directly into the mirror equation \u2014 use f.</TrapBox>
+            <TrapBox>Real images can be projected onto a screen. Virtual images cannot \u2014 they only appear when you look through (or into) the mirror or lens.</TrapBox>
+            <TrapBox>Negative magnification means the image is INVERTED \u2014 not that it\u2019s smaller. Size is |M|. M = \u22123 means 3\u00d7 larger and inverted.</TrapBox>
+            <TrapBox>Frequency stays the same when light changes medium. Speed (v = c/n) and wavelength change. Same rule as all waves \u2014 the source controls the frequency.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Speed Drills ───────────────────────────────────────────────────
+
+    function DrillsTab() {
+      const [shuffled, setShuffled] = useState(() => shuffle(DRILLS));
+      const [idx, setIdx] = useState(0);
+      const [revealed, setRevealed] = useState(false);
+      const [correct, setCorrect] = useState(0);
+      const [answered, setAnswered] = useState(0);
+      const [done, setDone] = useState(false);
+      const [history, setHistory] = useState([]);
+
+      useEffect(() => {
+        try {
+          const val = localStorage.getItem("phys-reg-drill-history");
+          if (val) setHistory(JSON.parse(val));
+        } catch (_) {}
+      }, []);
+
+      const handleAnswer = (wasCorrect) => {
+        const nc = wasCorrect ? correct + 1 : correct;
+        const na = answered + 1;
+        setCorrect(nc);
+        setAnswered(na);
+        if (na >= shuffled.length) {
+          const entry = { date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), score: nc, total: shuffled.length };
+          const nh = [entry, ...history].slice(0, 10);
+          setHistory(nh);
+          try { localStorage.setItem("phys-reg-drill-history", JSON.stringify(nh)); } catch (_) {}
+          setDone(true);
+        } else {
+          setIdx(idx + 1);
+          setRevealed(false);
+        }
+      };
+
+      const reset = () => {
+        setShuffled(shuffle(DRILLS));
+        setIdx(0); setRevealed(false);
+        setCorrect(0); setAnswered(0); setDone(false);
+      };
+
+      const HistoryBlock = () => history.length > 0 ? (
+        <Card color={C.ref} style={{ marginTop: 32 }}>
+          <SectionTitle color={C.ref}>Past Sessions</SectionTitle>
+          {history.map((h, i) => {
+            const pct = Math.round((h.score / h.total) * 100);
+            return (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: i < history.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>
+                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.dim }}>{h.date}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: pct >= 80 ? C.ene : pct >= 60 ? C.kin : C.err }}>{h.score}/{h.total}</span>
+              </div>
+            );
+          })}
+        </Card>
+      ) : null;
+
+      if (done) {
+        const pct = Math.round((correct / shuffled.length) * 100);
+        const msg = pct >= 90 ? "Everything is solid. You\u2019re ready." : pct >= 70 ? "Good. Review the problems you missed." : "Keep going \u2014 every miss is a gap you found before the exam.";
+        return (
+          <div>
+            <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>Speed Drills</div>
+            <div style={{ textAlign: "center", padding: "48px 0 32px" }}>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: 28, color: C.pro, marginBottom: 8 }}>Session Complete</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, color: C.t, marginBottom: 6 }}>{correct} / {shuffled.length}</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 28 }}>{msg}</div>
+              <button onClick={reset} style={{ background: `${C.pro}20`, border: `1px solid ${C.pro}55`, color: C.pro, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>New Session</button>
+            </div>
+            <HistoryBlock />
+          </div>
+        );
+      }
+
+      const cur = shuffled[idx];
+      const color = C[cur.color] || C.dim;
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>Speed Drills</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 20 }}>Answer before you reveal. One problem at a time.</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.dim }}>Problem {idx + 1} of {shuffled.length}</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: C.t }}>Score: <span style={{ color: C.pro }}>{correct}</span> / {answered}</span>
+          </div>
+          <div style={{ height: 3, background: C.cardBorder, borderRadius: 2, marginBottom: 24 }}>
+            <div style={{ height: 3, width: `${(idx / shuffled.length) * 100}%`, background: color, borderRadius: 2, transition: "width 0.3s ease" }} />
+          </div>
+          <Card color={color}>
+            <div style={{ marginBottom: 12 }}><Badge color={color}>{cur.topic}</Badge></div>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 15.5, color: C.t, lineHeight: 1.75 }}>{cur.problem}</div>
+          </Card>
+          {!revealed ? (
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button onClick={() => setRevealed(true)} style={{ background: `${color}1a`, border: `1px solid ${color}55`, color, borderRadius: 8, padding: "11px 36px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>Show Answer</button>
+            </div>
+          ) : (
+            <div>
+              <Card color={C.ene} style={{ marginTop: 8 }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 15, color: C.ene, marginBottom: 10 }}>{cur.answer}</div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.dim, lineHeight: 1.8, whiteSpace: "pre-line" }}>{cur.hint}</div>
+              </Card>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 16 }}>
+                <button onClick={() => handleAnswer(true)} style={{ background: `${C.ene}1a`, border: `1px solid ${C.ene}55`, color: C.ene, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>\u2713 Got it</button>
+                <button onClick={() => handleAnswer(false)} style={{ background: `${C.err}14`, border: `1px solid ${C.err}44`, color: C.err, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>\u2717 Missed it</button>
+              </div>
+            </div>
+          )}
+          <HistoryBlock />
+        </div>
+      );
+    }
+
+    // ─── Tab: Notes ──────────────────────────────────────────────────────────
+
+    function NotesTab() {
+      const [section, setSection] = useState(NOTE_SECTIONS[0]);
+      const [notes, setNotes] = useState({});
+      const [saved, setSaved] = useState(false);
+
+      useEffect(() => {
+        const loaded = {};
+        for (let i = 0; i < NOTE_SECTIONS.length; i++) {
+          try {
+            const val = localStorage.getItem(`phys-reg-note-${i}`);
+            if (val) loaded[NOTE_SECTIONS[i]] = val;
+          } catch (_) {}
+        }
+        setNotes(loaded);
+      }, []);
+
+      const handleChange = (val) => {
+        setNotes(prev => ({ ...prev, [section]: val }));
+        const i = NOTE_SECTIONS.indexOf(section);
+        try {
+          localStorage.setItem(`phys-reg-note-${i}`, val);
+          setSaved(true);
+          setTimeout(() => setSaved(false), 1500);
+        } catch (_) {}
+      };
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ref, marginBottom: 6 }}>Notes</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 20 }}>Your personal notes, saved automatically per section.</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+            {NOTE_SECTIONS.map(s => {
+              const active = s === section;
+              return (
+                <button key={s} onClick={() => setSection(s)} style={{ background: active ? `${C.ref}20` : "transparent", border: `0.5px solid ${active ? C.ref : C.cardBorder}`, color: active ? C.ref : C.dim, borderRadius: 6, padding: "5px 12px", fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ position: "relative" }}>
+            {saved && <div style={{ position: "absolute", top: 12, right: 14, zIndex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.ene }}>saved \u2713</div>}
+            <textarea
+              value={notes[section] || ""}
+              onChange={e => handleChange(e.target.value)}
+              placeholder={`Your notes for ${section}\u2026`}
+              style={{ width: "100%", minHeight: 340, background: C.card, border: `0.5px solid ${C.cardBorder}`, borderLeft: `3px solid ${C.ref}`, borderRadius: 12, padding: "16px 18px", color: C.t, resize: "vertical", fontFamily: "'Outfit', sans-serif", fontSize: 14, lineHeight: 1.85, outline: "none" }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Root ─────────────────────────────────────────────────────────────────
+
+    function PhysicsRegentsNotebook() {
+      const [tab, setTab] = useState("protocol");
+      const tabColors = {
+        protocol: C.pro, kin: C.kin, forces: C.frc, circular: C.wav,
+        energy: C.ene, momentum: C.mom, waves: C.wav, optics: C.opt, elec: C.elec,
+        modern: C.mod, qref: C.ref, traps: C.err, drills: C.pro, notes: C.ref,
+      };
+      const renderContent = () => {
+        switch (tab) {
+          case "protocol":  return <ProtocolTab />;
+          case "kin":       return <KinematicsTab />;
+          case "forces":    return <ForcesTab />;
+          case "circular":  return <CircularTab />;
+          case "energy":    return <EnergyTab />;
+          case "momentum":  return <MomentumTab />;
+          case "waves":     return <WavesTab />;
+          case "optics":    return <OpticsTab />;
+          case "elec":      return <ElectricityTab />;
+          case "modern":    return <ModernTab />;
+          case "qref":      return <QuickRefTab />;
+          case "traps":     return <TrapsTab />;
+          case "drills":    return <DrillsTab />;
+          case "notes":     return <NotesTab />;
+          default:          return null;
+        }
+      };
+      return (
+        <div style={{ fontFamily: "'Outfit', sans-serif", background: C.bg, minHeight: "100vh", display: "flex" }}>
+          <div style={{ width: 214, background: C.sb, borderRight: `0.5px solid ${C.sbBorder}`, padding: "28px 0", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", overflowY: "auto", flexShrink: 0 }}>
+            <div style={{ padding: "0 20px 24px" }}>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: 13.5, color: C.t, lineHeight: 1.4, marginBottom: 4 }}>Physics Regents</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: C.muted }}>Survival Guide</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {TABS.map(t => {
+                const active = tab === t.id;
+                const color = tabColors[t.id] || C.dim;
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)} style={{ width: "100%", textAlign: "left", background: active ? `${color}18` : "transparent", border: "none", borderLeft: active ? `2px solid ${color}` : "2px solid transparent", padding: "9px 20px", fontFamily: "'Outfit', sans-serif", fontSize: 12.5, fontWeight: active ? 500 : 400, color: active ? color : C.dim }}>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ padding: "20px 20px 0", borderTop: `0.5px solid ${C.sbBorder}` }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: C.muted, lineHeight: 1.6 }}>Physics Regents<br/>Survival Guide</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, padding: "40px 48px", overflowY: "auto" }}>
+            <div style={{ maxWidth: 760 }}>
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<PhysicsRegentsNotebook />);
+  </script>
+</body>
+</html>
