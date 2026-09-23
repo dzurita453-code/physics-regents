@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Regents Survival Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { background: #0b0d0f; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0f1115; }
+    ::-webkit-scrollbar-thumb { background: #505a68; border-radius: 2px; }
+    textarea::placeholder { color: #505a68; }
+    button { transition: opacity 0.12s; cursor: pointer; }
+    button:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const C = {
+      bg: "#0b0d0f", sb: "#0f1115", sbBorder: "#181c22",
+      card: "#121518", cardBorder: "#1c2028",
+      t: "#e2e0dc", muted: "#505a68", dim: "#8590a0",
+      kin:  "#f59e0b",
+      frc:  "#4fc3f7",
+      ene:  "#6ee7b7",
+      mom:  "#c084fc",
+      wav:  "#67e8f9",
+      elec: "#fb923c",
+      mod:  "#f472b6",
+      pro:  "#a3e635",
+      err:  "#f87171",
+      ref:  "#94a3b8",
+      opt:  "#a78bfa",
+    };
+
+    const TABS = [
+      { id: "protocol", label: "① The Protocol" },
+      { id: "kin",      label: "② Kinematics" },
+      { id: "forces",   label: "③ Forces" },
+      { id: "circular", label: "④ Circular & Gravity" },
+      { id: "energy",   label: "⑤ Energy" },
+      { id: "momentum", label: "⑥ Momentum" },
+      { id: "waves",    label: "⑦ Waves" },
+      { id: "optics",   label: "⑧ Optics" },
+      { id: "elec",     label: "⑨ Electricity" },
+      { id: "modern",   label: "⑩ Modern Physics" },
+      { id: "qref",     label: "Quick Reference" },
+      { id: "traps",    label: "Common Mistakes" },
+      { id: "drills",   label: "⚡ Speed Drills" },
+      { id: "notes",    label: "Notes" },
+    ];
+
+    const DRILLS = [
+      { id: "K1", topic: "Kinematics", color: "kin",
+        problem: "A car starts from rest and accelerates at 3.0 m/s². What is its speed after 4.0 s?",
+        answer: "12 m/s",
+        hint: "Use v = v₀ + at.  v₀ = 0 (starts from rest).\nv = 0 + (3.0)(4.0) = 12 m/s." },
+      { id: "K2", topic: "Kinematics", color: "kin",
+        problem: "A ball is dropped from rest. How far does it fall in 3.0 s?  (g = 9.81 m/s²)",
+        answer: "44.1 m",
+        hint: "Use Δx = v₀t + ½At².  v₀ = 0, a = 9.81, t = 3.0.\nΔx = ½(9.81)(3.0)² = ½(9.81)(9.0) = 44.1 m." },
+      { id: "K3", topic: "Kinematics", color: "kin",
+        problem: "A car traveling at 24 m/s decelerates uniformly to rest in 6.0 s. What is its acceleration?",
+        answer: "−4.0 m/s²",
+        hint: "a = Δv / t = (v_f − v₀) / t = (0 − 24) / 6.0 = −4.0 m/s².\nNegative sign means decelerating (opposing motion)." },
+      { id: "K4", topic: "Kinematics", color: "kin",
+        problem: "A ball is thrown straight upward at 20 m/s. How high does it rise?  (g = 9.81 m/s²)",
+        answer: "≈ 20.4 m",
+        hint: "At max height v = 0.  Use v² = v₀² + 2aΔx.\n0 = (20)² + 2(−9.81)Δx  →  Δx = 400 / 19.62 ≈ 20.4 m." },
+      { id: "K5", topic: "Kinematics", color: "kin",
+        problem: "A velocity–time graph has a constant positive slope. What does this tell you about the motion?",
+        answer: "Constant positive acceleration (speeding up in the positive direction)",
+        hint: "Slope of a v–t graph = acceleration.\nConstant slope = constant acceleration.\nPositive slope = velocity is increasing." },
+      { id: "F1", topic: "Forces", color: "frc",
+        problem: "A net force of 36 N acts on a 12 kg box. What is its acceleration?",
+        answer: "3.0 m/s²",
+        hint: "F_net = ma  →  a = F_net / m = 36 / 12 = 3.0 m/s²." },
+      { id: "F2", topic: "Forces", color: "frc",
+        problem: "A 70 kg person stands in an elevator accelerating upward at 2.0 m/s². What is the normal force on them?  (g = 9.81 m/s²)",
+        answer: "827 N",
+        hint: "F_net = ma  →  F_N − mg = ma  →  F_N = m(g + a).\nF_N = 70 × (9.81 + 2.0) = 70 × 11.81 = 826.7 ≈ 827 N.\nF_N is greater than weight because the elevator accelerates you upward." },
+      { id: "F3", topic: "Forces", color: "frc",
+        problem: "A 5.0 kg block slides on a surface with μ_k = 0.30.  What is the kinetic friction force?  (g = 9.81 m/s²)",
+        answer: "14.7 N",
+        hint: "F_f = μ_k × F_N.  On a flat surface F_N = mg.\nF_f = 0.30 × (5.0 × 9.81) = 0.30 × 49.05 = 14.7 N." },
+      { id: "F4", topic: "Forces", color: "frc",
+        problem: "Two forces act on an object: 30 N east and 40 N north. What is the magnitude of the net force?",
+        answer: "50 N",
+        hint: "Forces are perpendicular — use the Pythagorean theorem.\n|F_net| = √(30² + 40²) = √(900 + 1600) = √2500 = 50 N.\n(3–4–5 right triangle scaled by 10.)" },
+      { id: "C1", topic: "Circular Motion", color: "wav",
+        problem: "A 0.50 kg ball on a 1.5 m string moves in a horizontal circle at 4.0 m/s. What is the centripetal force?",
+        answer: "5.3 N",
+        hint: "F_c = mv² / r = (0.50)(4.0)² / 1.5 = (0.50)(16) / 1.5 = 8.0 / 1.5 ≈ 5.3 N.\nThis force is provided by the tension in the string." },
+      { id: "C2", topic: "Circular Motion", color: "wav",
+        problem: "The distance between two masses doubles. The gravitational force becomes what fraction of its original value?",
+        answer: "1/4 of the original force",
+        hint: "F_g = Gm₁m₂ / r².  Force is inversely proportional to r².\nDouble r  →  r² multiplied by 4  →  force divided by 4.\nThis is the inverse-square law." },
+      { id: "E1", topic: "Energy", color: "ene",
+        problem: "A 3.0 kg ball moves at 10 m/s. What is its kinetic energy?",
+        answer: "150 J",
+        hint: "KE = ½mv² = ½(3.0)(10)² = ½(3.0)(100) = 150 J." },
+      { id: "E2", topic: "Energy", color: "ene",
+        problem: "A 4.0 kg object is lifted 5.0 m. How much gravitational PE does it gain?  (g = 9.81 m/s²)",
+        answer: "196 J",
+        hint: "PE_g = mgh = (4.0)(9.81)(5.0) = 196.2 ≈ 196 J." },
+      { id: "E3", topic: "Energy", color: "ene",
+        problem: "A 2.0 kg ball drops from 8.0 m. What is its speed just before impact?  (ignore air resistance, g = 9.81 m/s²)",
+        answer: "≈ 12.5 m/s",
+        hint: "Conservation of energy: mgh = ½mv²  →  v = √(2gh).\nv = √(2 × 9.81 × 8.0) = √156.96 ≈ 12.5 m/s." },
+      { id: "E4", topic: "Energy", color: "ene",
+        problem: "A force of 50 N pushes a box 6.0 m at 60° above horizontal. How much work is done on the box?",
+        answer: "150 J",
+        hint: "W = Fd cosθ.  Only the horizontal component does work.\nW = (50)(6.0) cos 60° = 300 × 0.50 = 150 J." },
+      { id: "M1", topic: "Momentum", color: "mom",
+        problem: "A 4.0 kg object moving at 6.0 m/s collides with and sticks to a stationary 2.0 kg object. What is their combined velocity?",
+        answer: "4.0 m/s",
+        hint: "Perfectly inelastic: m₁v₁ + m₂v₂ = (m₁ + m₂)v’.\n(4.0)(6.0) + (2.0)(0) = (6.0)v’  →  24 = 6v’  →  v’ = 4.0 m/s." },
+      { id: "M2", topic: "Momentum", color: "mom",
+        problem: "A 0.50 kg ball changes velocity from +8.0 m/s to −4.0 m/s. What is the impulse exerted on it?",
+        answer: "−6.0 N·s",
+        hint: "J = mΔv = m(v_f − v_i) = (0.50)(−4.0 − 8.0) = (0.50)(−12.0) = −6.0 N·s.\nNegative = impulse in the negative direction." },
+      { id: "M3", topic: "Momentum", color: "mom",
+        problem: "A 60 kg person and a 40 kg raft are both at rest. The person jumps off at 3.0 m/s. What is the raft’s velocity?",
+        answer: "−4.5 m/s (opposite direction)",
+        hint: "Total initial momentum = 0.\n60(3.0) + 40(v) = 0  →  180 + 40v = 0  →  v = −4.5 m/s.\nThe raft moves opposite to the person." },
+      { id: "W1", topic: "Waves", color: "wav",
+        problem: "A wave has a frequency of 440 Hz and a wavelength of 0.77 m. What is its speed?",
+        answer: "339 m/s",
+        hint: "v = fλ = (440)(0.77) = 338.8 ≈ 339 m/s." },
+      { id: "W2", topic: "Waves", color: "wav",
+        problem: "A sound wave has a period of 0.0050 s. What is its frequency?",
+        answer: "200 Hz",
+        hint: "f = 1/T = 1/0.0050 = 200 Hz.\nPeriod and frequency are reciprocals." },
+      { id: "W3", topic: "Waves", color: "wav",
+        problem: "Light travels from water (n = 1.33) into air (n = 1.00) at 30° from the normal. What is the refracted angle?  (sin 30° = 0.500)",
+        answer: "≈ 41.7°",
+        hint: "Snell’s Law: n₁ sinθ₁ = n₂ sinθ₂.\n1.33 × 0.500 = 1.00 × sinθ₂  →  sinθ₂ = 0.665  →  θ₂ ≈ 41.7°.\nGoing to a less-dense medium, the ray bends away from the normal." },
+      { id: "EL1", topic: "Electricity", color: "elec",
+        problem: "A 9.0 V battery is connected to a 3.0 Ω resistor. What current flows?",
+        answer: "3.0 A",
+        hint: "Ohm’s Law: I = V / R = 9.0 / 3.0 = 3.0 A." },
+      { id: "EL2", topic: "Electricity", color: "elec",
+        problem: "Three 12 Ω resistors are connected in parallel. What is the total resistance?",
+        answer: "4.0 Ω",
+        hint: "1/R_p = 1/12 + 1/12 + 1/12 = 3/12  →  R_p = 12/3 = 4.0 Ω.\nParallel resistance is always less than the smallest individual resistor." },
+      { id: "EL3", topic: "Electricity", color: "elec",
+        problem: "A light bulb operates at 120 V and consumes 60 W. What is its resistance?",
+        answer: "240 Ω",
+        hint: "P = V² / R  →  R = V² / P = (120)² / 60 = 14400 / 60 = 240 Ω." },
+      { id: "MOD1", topic: "Modern Physics", color: "mod",
+        problem: "A photon has a frequency of 6.0 × 10¹⁴ Hz. What is its energy?  (h = 6.63 × 10⁻³⁴ J·s)",
+        answer: "3.98 × 10⁻¹⁹ J",
+        hint: "E = hf = (6.63 × 10⁻³⁴)(6.0 × 10¹⁴) = 39.78 × 10⁻²⁰ = 3.98 × 10⁻¹⁹ J." },
+      { id: "MOD2", topic: "Modern Physics", color: "mod",
+        problem: "Light above threshold frequency shines on a metal. You double the intensity while keeping frequency constant. What happens to: (a) number of ejected electrons, and (b) maximum KE of each electron?",
+        answer: "(a) doubles  —  (b) no change",
+        hint: "Intensity = number of photons per second. More photons → more electrons ejected.\nBut KE_max = hf − φ depends only on frequency, not intensity.\nFrequency unchanged → KE_max unchanged." },
+      { id: "MOD3", topic: "Modern Physics", color: "mod",
+        problem: "A metal has work function φ. What is the threshold frequency below which no electrons are ejected?",
+        answer: "f₀ = φ / h",
+        hint: "At threshold, KE_max = 0.\nFrom KE_max = hf − φ: set 0 = hf₀ − φ  →  f₀ = φ / h.\nBelow this frequency, no electrons are ejected regardless of intensity." },
+    ];
+
+    const NOTE_SECTIONS = [
+      "General Notes", "Kinematics", "Forces", "Circular Motion & Gravity",
+      "Energy", "Momentum", "Waves", "Electricity", "Modern Physics", "My Personal Traps",
+    ];
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    // ─── Shared components ────────────────────────────────────────────────────
+
+    function Card({ color, children, style: s }) {
+      return (
+        <div style={{
+          background: C.card, border: `0.5px solid ${C.cardBorder}`,
+          borderLeft: `3px solid ${color || C.muted}`,
+          borderRadius: 12, padding: "18px 22px", marginBottom: 16, ...s,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function MathBox({ children, color }) {
+      return (
+        <div style={{
+          background: "#0e1014", border: `1px solid ${(color || C.muted) + "44"}`,
+          borderRadius: 8, padding: "12px 16px", margin: "10px 0",
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 13.5,
+          color: color || C.t, lineHeight: 1.9, whiteSpace: "pre-wrap",
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function SectionTitle({ children, color }) {
+      return (
+        <div style={{
+          fontFamily: "'Lora', serif", fontSize: 11, fontWeight: 600,
+          letterSpacing: "0.12em", textTransform: "uppercase",
+          color: color || C.dim, marginBottom: 10, marginTop: 4,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    function Badge({ children, color }) {
+      return (
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5,
+          background: `${color}22`, color, border: `0.5px solid ${color}55`,
+          borderRadius: 5, padding: "2px 8px", marginRight: 6, display: "inline-block",
+        }}>
+          {children}
+        </span>
+      );
+    }
+
+    function TrapBox({ children }) {
+      return (
+        <div style={{
+          background: `${C.err}0f`, border: `0.5px solid ${C.err}44`,
+          borderLeft: `3px solid ${C.err}`, borderRadius: 8,
+          padding: "10px 14px", margin: "8px 0",
+          fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7,
+        }}>
+          {children}
+        </div>
+      );
+    }
+
+    // ─── Tab: Protocol ────────────────────────────────────────────────────────
+
+    function ProtocolTab() {
+      const steps = [
+        { n: "1", label: "GIVENS", color: C.kin,
+          body: `Every number with its unit and variable.\n\n"Starts from rest"   →   v₀ = 0\n"Comes to a stop"    →   v_f = 0\n"Constant velocity"  →   a = 0\n"In free fall"       →   a = g = 9.81 m/s² downward\n\nWrite down zeros. Don't keep them in your head.` },
+        { n: "2", label: "UNKNOWN", color: C.frc,
+          body: `What is the question actually asking for?\n\nCircle it or write it with a question mark.\nDon't solve for the first variable you can reach — solve for what's asked.` },
+        { n: "3", label: "EQUATION", color: C.ene,
+          body: `Write the general formula FIRST — before plugging in anything.\n\nF_net = ma          ← correct\nF_net = 5 × 3       ← wrong (numbers before formula)\n\nThis catches algebra errors before they happen.` },
+        { n: "4", label: "PLUG IN", color: C.mom,
+          body: `Numbers WITH units.\n\nF_net = (5 kg)(3 m/s²) = 15 N\n\nIf units on both sides don't match, you used the wrong equation.` },
+        { n: "5", label: "SOLVE", color: C.wav,
+          body: `Step by step. Don't skip lines under exam pressure.\nOne algebra step per line. Errors compound when you rush.` },
+        { n: "6", label: "CHECK", color: C.pro,
+          body: `Right units? Reasonable magnitude? Correct sign?\nDoes the answer make physical sense?\n\n"The car decelerated at 9800 m/s²" — that's 1000 g's. Something is wrong.\n"The electron has mass 400 kg" — that's a person. Something is wrong.` },
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>The Protocol</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Every physics problem. No exceptions. Write this on your scratch paper.</div>
+          {steps.map(s => (
+            <Card key={s.n} color={s.color}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, color: s.color, minWidth: 28 }}>{s.n}</span>
+                <span style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: 15, color: s.color }}>{s.label}</span>
+              </div>
+              <MathBox color={s.color}>{s.body}</MathBox>
+            </Card>
+          ))}
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>The #1 Mistake</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.7 }}>
+              Not writing down givens. If you hold numbers in your head, you will drop them. The protocol is most necessary under pressure — not least.
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Kinematics ─────────────────────────────────────────────────────
+
+    function KinematicsTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.kin, marginBottom: 6 }}>Kinematics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Motion in one dimension. All four equations assume constant acceleration.</div>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>Understanding It — Where These Equations Come From</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Kinematics is just algebra applied to the definitions of velocity and acceleration. Start from the two definitions:
+              <MathBox color={C.kin}>{`a = Δv/Δt   →   rearrange   →   v = v₀ + at   (equation 1)`}</MathBox>
+              That's it — equation 1 is nothing but "acceleration = change in velocity over time," solved for v. Every other kinematics equation is built from that same idea plus one more fact: <strong style={{ color: C.kin }}>when acceleration is constant, average velocity is just the midpoint of the start and end velocities</strong>, v_avg = ½(v + v₀). Multiply average velocity by time to get displacement, and you have equation 4. Substitute equation 1 into equation 4 and simplify, and you get equation 2. Eliminate t between equations 1 and 4, and you get equation 3.
+              <br/><br/>
+              The reason this matters: you are not memorizing four unrelated formulas. You are memorizing one physical idea (constant acceleration means velocity changes at a steady rate) expressed four different algebraic ways, each missing a different variable. That's also why the "which equation do I pick" question in the Protocol tab works — you're just asking which version of the same idea doesn't need the piece of information you don't have.
+            </div>
+          </Card>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>The Big Four Equations</SectionTitle>
+            <MathBox color={C.kin}>{`v   = v₀ + at           → no displacement needed
+Δx  = v₀t + ½At²        → no final velocity needed
+v²  = v₀² + 2aΔx        → no time needed
+Δx  = ½(v + v₀)t        → no acceleration needed`}</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.dim, lineHeight: 1.7, marginTop: 8 }}>
+              <strong style={{ color: C.kin }}>How to choose:</strong> Write your givens. Find the missing variable. Pick the equation that does <em>not</em> contain the missing variable.
+            </div>
+          </Card>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>Critical Givens — Write These Down</SectionTitle>
+            {[
+              ["Starts from rest", "v₀ = 0"],
+              ["Comes to a stop", "v_f = 0"],
+              ["Constant velocity", "a = 0   →   use Δx = vt"],
+              ["Free fall, upward positive", "a = −9.81 m/s²"],
+              ["At maximum height in free fall", "v = 0   (but a = −g still — gravity never turns off)"],
+            ].map(([cue, val]) => (
+              <div key={cue} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12.5, color: C.dim, minWidth: 200 }}>{cue}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: C.kin }}>{val}</span>
+              </div>
+            ))}
+          </Card>
+          <Card color={C.kin}>
+            <SectionTitle color={C.kin}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A car traveling at 15 m/s applies the brakes and decelerates uniformly, coming to rest after traveling 45 m. Find the acceleration and the time it took to stop."</em>
+            </div>
+            <MathBox color={C.kin}>{`GIVENS      v₀ = 15 m/s,  v = 0 m/s (comes to rest),  Δx = 45 m
+UNKNOWN     a = ?,  then  t = ?
+
+STEP 1 — find a. Missing variable is t, so pick the equation without t:
+  v² = v₀² + 2aΔx
+  (0)² = (15)² + 2a(45)
+  0 = 225 + 90a
+  a = −225/90 = −2.5 m/s²
+
+STEP 2 — find t, now that a is known. Use v = v₀ + at:
+  0 = 15 + (−2.5)t
+  t = −15 / −2.5 = 6.0 s
+
+CHECK   Negative a with a positive initial velocity → slowing down. Correct direction.
+        Units: m/s² and s. Correct.
+        Magnitude: stopping in 6 s over 45 m from 15 m/s is reasonable for braking — not
+        instant, not a mile. Passes the sanity check.`}</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim, lineHeight: 1.7 }}>
+              Notice the strategy: you almost never have every variable for one equation. Solve for what you <em>can</em> get first, then feed that answer into a second equation to get what's actually asked. This two-step chaining is the single most common pattern on the exam's kinematics free-response questions.
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Graph Interpretation</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.kin }}>Position–time:</strong> slope = velocity. Flat = stopped. Straight = constant velocity. Curve = acceleration present.<br/>
+              <strong style={{ color: C.kin }}>Velocity–time:</strong> slope = acceleration. Area under curve = displacement. Below x-axis = moving in negative direction.<br/>
+              <strong style={{ color: C.kin }}>Acceleration–time:</strong> area = change in velocity.
+            </div>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Displacement ≠ distance. Displacement is net change in position. Distance is total path length.</TrapBox>
+            <TrapBox>Gravity is 9.81 m/s² downward. If upward is positive, write a = −9.81. The sign is not optional.</TrapBox>
+            <TrapBox>At maximum height: v = 0, but acceleration is still −g. The ball is still in free fall at the top — gravity doesn’t pause.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Forces ─────────────────────────────────────────────────────────
+
+    function ForcesTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.frc, marginBottom: 6 }}>Forces & Newton’s Laws</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Every force problem starts with a free body diagram. Draw the object as a dot. Draw every force as an arrow. Label. Then write F_net = ma.</div>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Newton’s Three Laws</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.frc }}>First — Inertia:</strong> An object at rest stays at rest; an object in motion stays in motion at constant velocity, unless a net force acts. If velocity is constant (or zero), net force = 0.<br/><br/>
+              <strong style={{ color: C.frc }}>Second — F = ma:</strong> Net force causes acceleration. Direction of acceleration equals direction of net force.<br/><br/>
+              <strong style={{ color: C.frc }}>Third — Action–Reaction:</strong> If A exerts force F on B, then B exerts force F on A in the opposite direction. These forces act on <em>different</em> objects.
+            </div>
+          </Card>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Understanding It — Why the Free Body Diagram Comes First</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              F_net = ma only works if F_net is the <em>correct</em> net force — the vector sum of every real force acting on the object. Skip the diagram and it's easy to forget a force (friction, normal force on an incline) or double count one. The diagram isn't busywork; it's the step that guarantees F_net is actually right before you do any algebra.
+              <br/><br/>
+              The deeper reason Newton's Second Law works the way it does: acceleration isn't caused by any single force, it's caused by whatever is <em>left over</em> after all the forces are added as vectors. A heavy box sitting on a table has a huge downward force (gravity) and a huge upward force (normal) — but they cancel, so a = 0. The box "feels" both forces, but only the imbalance produces motion. This is why "there's a force pushing it, so it must be accelerating" is a trap: a constant force with a canceling opposite force gives zero acceleration, and a net force of zero is exactly Newton's First Law (equilibrium).
+            </div>
+          </Card>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Key Equations</SectionTitle>
+            <MathBox color={C.frc}>{`F_net      = ma
+F_g        = mg               (weight — always points downward)
+F_f        = μF_N            (friction — opposes direction of motion)
+On incline:   F_N = mg cosθ  ← NOT just mg
+On incline:   F_∥ = mg sinθ  (component of gravity along the ramp)`}</MathBox>
+          </Card>
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A 10 kg box sits on a frictionless ramp inclined at 30°. Find its acceleration down the ramp."</em>
+            </div>
+            <MathBox color={C.frc}>{`GIVENS      m = 10 kg,  θ = 30°,  frictionless → F_f = 0
+UNKNOWN     a = ?
+
+STEP 1 — draw the free body diagram (mentally or on paper):
+  Along the ramp:      F_∥ = mg sinθ    (pulls the box down the slope)
+  Perpendicular to ramp: F_N = mg cosθ   (balances — no motion into/out of the ramp)
+  No friction, so F_∥ is the ONLY force along the direction of motion — it IS F_net.
+
+STEP 2 — write the general equation before plugging in:
+  F_net = ma   →   mg sinθ = ma
+
+STEP 3 — notice mass cancels:
+  g sinθ = a
+  a = (9.81)(sin 30°) = (9.81)(0.500) = 4.9 m/s²
+
+CHECK   Mass canceled — that's expected here, not a mistake: on a frictionless
+        incline, a heavier box and a lighter box slide down at the same rate,
+        exactly like objects in free fall (same reason, same math).
+        Magnitude: 4.9 m/s² is less than g (9.81), which makes sense — the
+        ramp only "steals" part of gravity's pull. At θ = 90° this would
+        reduce to a = g (free fall), which is the right limiting case.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Normal force is NOT always mg. On an incline it is mg cosθ. In an elevator accelerating upward it is m(g + a).</TrapBox>
+            <TrapBox>Static friction: F_f ≤ μ_s F_N. The actual value is whatever it needs to be, up to the maximum. Kinetic friction: F_f = μ_k F_N (constant while sliding).</TrapBox>
+            <TrapBox>"Weightless" does NOT mean no gravity. It means no normal force — the object is in free fall. Gravity still acts at full strength.</TrapBox>
+            <TrapBox>Action–reaction pairs act on DIFFERENT objects. They do not cancel in a single free body diagram.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Circular ────────────────────────────────────────────────────────
+
+    function CircularTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.wav, marginBottom: 6 }}>Circular Motion & Gravity</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Before writing any equation, ask: "What physical force is pointing toward the center?"</div>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Understanding It — Why Circular Motion Needs a Force At All</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Newton's First Law says objects move in straight lines unless a force acts. Moving in a circle means the direction of velocity is constantly changing — and a change in velocity (even at constant speed) is an acceleration. So something must be pushing or pulling the object off its straight-line path, continuously, toward the center. That inward-pointing net force is what "centripetal" means — it's not a new type of force, it's just the <em>name</em> for whichever real force (tension, gravity, friction, normal) happens to be doing that job.
+              <br/><br/>
+              This is why F_c = mv²/r isn't something you add to a free body diagram as an extra arrow. It's the answer you get when you add up the real forces already on the diagram and point their sum toward the center. If a problem says "find the centripetal force," it's really asking "find the net force," constrained to point inward.
+            </div>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Key Equations</SectionTitle>
+            <MathBox color={C.wav}>{`F_c = mv²/r         (centripetal force — always toward center)
+a_c = v²/r          (centripetal acceleration — toward center)
+F_g = Gm₁m₂/r²     (Newton’s Law of Universal Gravitation)
+v   = 2πr/T         (orbital speed — T is period, one full revolution)`}</MathBox>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>What Provides the Centripetal Force?</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              Centripetal force is <strong style={{ color: C.wav }}>not a new kind of force</strong>. It is provided by one of the real forces already present:<br/>
+              • Tension — ball on a string<br/>
+              • Gravity — satellites, planets<br/>
+              • Friction — car turning on a road<br/>
+              • Normal force — roller coaster loop
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Vertical Circle Analysis</SectionTitle>
+            <MathBox>{`Top of loop:    F_N + mg = mv²/r
+  Both F_N and mg point downward (toward center).
+
+Bottom of loop: F_N − mg = mv²/r
+  F_N points up (toward center), mg points down (away from center).
+
+At top, minimum speed: F_N = 0  →  mg = mv²/r  →  v_min = √(gr)`}</MathBox>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A 1200 kg car rounds a flat, unbanked curve of radius 50 m. What is the minimum coefficient of static friction needed to keep the car from sliding, if the car's speed is 20 m/s?"</em>
+            </div>
+            <MathBox color={C.wav}>{`GIVENS      m = 1200 kg,  r = 50 m,  v = 20 m/s
+UNKNOWN     μ_s (minimum) = ?
+
+STEP 1 — identify what provides the centripetal force.
+  The car is on a flat road — the only horizontal force available is friction.
+  So friction IS the centripetal force here: F_f = F_c.
+
+STEP 2 — write both equations, general form first:
+  F_c = mv²/r            (what the turn requires)
+  F_f = μ_s F_N = μ_s mg  (what friction can supply, at maximum, on flat ground)
+
+STEP 3 — set them equal (friction must at least match what's required) and solve:
+  μ_s mg = mv²/r
+  μ_s = v² / (gr)                 ← mass cancels again, same pattern as the incline
+  μ_s = (20)² / [(9.81)(50)]
+  μ_s = 400 / 490.5 ≈ 0.82
+
+CHECK   μ_s ≈ 0.82 is a plausible coefficient for rubber on dry asphalt (typical
+        range 0.7–1.0) — physically reasonable, not an absurd number like 5 or
+        0.001. Mass canceling makes sense: a heavier car needs proportionally
+        more friction force, but also has proportionally more normal force
+        supplying it, so the required μ is mass-independent.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Centrifugal force is not a real force. It is a sensation in a rotating frame. Never draw it on a free body diagram.</TrapBox>
+            <TrapBox>Gravity obeys an inverse-square law. Double the distance → one-quarter the force. Not one-half.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Energy ─────────────────────────────────────────────────────────
+
+    function EnergyTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ene, marginBottom: 6 }}>Energy</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Conservation of energy is the most powerful single tool in physics. Know when it applies — and when it doesn’t.</div>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Understanding It — Why Energy Methods Beat Force Methods</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Energy is a scalar — no direction, no angles to resolve. When a problem involves a curved path, a changing force, or you only care about the start and end states (not the messy stuff in between), energy conservation skips all of that. Force/kinematics methods need you to track the object's motion moment to moment; energy methods only need the state at the start and the state at the end.
+              <br/><br/>
+              The work–energy theorem (W_net = ΔKE) is the bridge between the two worlds: it says the net work done on an object equals its change in kinetic energy — which is really just F_net = ma rewritten after being multiplied through by displacement and integrated. So you're not learning a separate law; you're learning a more convenient form of the same law, one that trades "solve a differential equation for the whole path" for "just look at the endpoints."
+              <br/><br/>
+              Why energy is only <em>conserved</em> (not just related to work) when forces are conservative: a conservative force like gravity does work that depends only on the start and end height, not the path taken — so you can store that work as "potential" energy and get it back later. Friction isn't like that: the work it does depends on the total path length, so there's no path-independent "potential" to define. That's the real reason friction "destroys" mechanical energy — it doesn't destroy energy overall (it becomes heat), it destroys the bookkeeping trick that let you ignore the path.
+            </div>
+          </Card>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Key Equations</SectionTitle>
+            <MathBox color={C.ene}>{`KE    = ½mv²             (kinetic energy)
+PE_g  = mgh              (gravitational potential energy)
+PE_s  = ½kx²             (elastic potential energy — springs)
+W     = Fd cosθ         (work — F × displacement in direction of force)
+P     = W/t = Fv         (power — rate of doing work)
+W_net = ΔKE              (work–energy theorem)`}</MathBox>
+          </Card>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Conservation of Energy</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.t, lineHeight: 1.7, marginBottom: 8 }}>
+              If only conservative forces act (gravity, springs — <strong style={{ color: C.err }}>not friction</strong>):
+            </div>
+            <MathBox color={C.ene}>KE_i + PE_i  =  KE_f + PE_f</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.dim, lineHeight: 1.7, marginTop: 6 }}>
+              If friction is present, mechanical energy is not conserved. The "lost" energy becomes thermal energy (heat). W_friction = ΔE_mechanical (negative).
+            </div>
+          </Card>
+          <Card color={C.ene}>
+            <SectionTitle color={C.ene}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A 2.0 kg block starts at rest at the top of a frictionless 5.0 m tall ramp and slides down onto a rough horizontal surface (μ_k = 0.20). How far along the rough surface does it slide before stopping?"</em>
+            </div>
+            <MathBox color={C.ene}>{`GIVENS      m = 2.0 kg,  h = 5.0 m,  μ_k = 0.20,  v_top = 0,  v_final = 0
+UNKNOWN     d (distance on rough surface) = ?
+
+PART A — find speed at bottom of ramp (frictionless → energy is conserved here):
+  PE_i = KE_f
+  mgh = ½mv²
+  v² = 2gh = 2(9.81)(5.0) = 98.1 m²/s²        ← don't even need v itself yet
+
+PART B — on the rough surface, friction removes ALL the kinetic energy by the
+time the block stops. Use the work–energy theorem instead of conservation,
+because mechanical energy is NOT conserved here:
+  W_friction = ΔKE
+  −F_f · d = 0 − KE_bottom
+  −(μ_k mg)(d) = −(½mv²)
+  μ_k g d = ½v²                                 ← mass cancels (same pattern again)
+  d = v² / (2μ_k g) = 98.1 / [2(0.20)(9.81)]
+  d = 98.1 / 3.924 ≈ 25 m
+
+CHECK   Units cancel to meters. Magnitude: a low-friction surface (μ = 0.20)
+        letting a block coast 25 m after a 5 m drop is reasonable — not
+        instant stopping, not sliding forever. Notice PART A never needed v
+        itself, only v² — recognizing that shortcut saves a square root you
+        don't actually need.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Holding a heavy box stationary = NO work done. Work requires displacement in the direction of the force.</TrapBox>
+            <TrapBox>Carrying a box horizontally at constant height = NO work done by gravity. Force is vertical, displacement is horizontal. cos 90° = 0.</TrapBox>
+            <TrapBox>KE depends on v². Double the speed → quadruple the kinetic energy. Don’t forget the square.</TrapBox>
+            <TrapBox>The reference height for PE_g is a choice. Only changes in height matter — set h = 0 wherever it simplifies the problem.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Momentum ───────────────────────────────────────────────────────
+
+    function MomentumTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.mom, marginBottom: 6 }}>Momentum</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Momentum is a vector. Assign positive and negative directions before writing any equation.</div>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Understanding It — Why Momentum Is Conserved</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Momentum conservation is really just Newton's Third Law in disguise. During a collision, object A pushes on object B with some force, and by the Third Law, B pushes back on A with the exact same magnitude, opposite direction, for the exact same amount of time (they're in contact together). Impulse is J = FΔt, so A's impulse and B's impulse are equal and opposite — meaning A's momentum change and B's momentum change are equal and opposite. Add them up and they cancel: <strong style={{ color: C.mom }}>the total momentum of the system doesn't change</strong>, no matter what happens during the collision itself (elastic, inelastic, explosion — doesn't matter).
+              <br/><br/>
+              This is why "closed system" is the critical qualifier: conservation only holds if no <em>external</em> force acts during the collision (like an outside push, or significant friction from the ground). Internal forces — the forces the colliding objects exert on each other — always cancel by Newton's Third Law. External forces don't have a partner inside the system to cancel with, so they can and do change total momentum.
+            </div>
+          </Card>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Key Equations</SectionTitle>
+            <MathBox color={C.mom}>{`p = mv                              (momentum — vector, same direction as v)
+J = FΔt = Δp                        (impulse = change in momentum)
+Σp_before = Σp_after                (conservation — closed system only)`}</MathBox>
+          </Card>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Types of Collisions</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.mom }}>Elastic:</strong> Both momentum and kinetic energy conserved. Objects bounce.
+              <MathBox color={C.mom}>m₁v₁ + m₂v₂ = m₁v₁’ + m₂v₂’</MathBox>
+              <strong style={{ color: C.mom }}>Inelastic:</strong> Momentum conserved. Kinetic energy lost to heat, sound, or deformation.<br/><br/>
+              <strong style={{ color: C.mom }}>Perfectly inelastic:</strong> Objects stick together.
+              <MathBox color={C.mom}>m₁v₁ + m₂v₂ = (m₁ + m₂)v’</MathBox>
+            </div>
+          </Card>
+          <Card color={C.mom}>
+            <SectionTitle color={C.mom}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A 1000 kg car moving at +15 m/s collides head-on with a 1500 kg car moving at −5.0 m/s. They stick together on impact. Find their common velocity after the collision, and determine whether the collision was elastic."</em>
+            </div>
+            <MathBox color={C.mom}>{`GIVENS      m₁ = 1000 kg, v₁ = +15 m/s,  m₂ = 1500 kg, v₂ = −5.0 m/s
+            (positive direction assigned as the first car's direction of travel)
+UNKNOWN     v’ (common velocity) = ?,  then compare KE before/after
+
+STEP 1 — they stick together → perfectly inelastic → use:
+  m₁v₁ + m₂v₂ = (m₁ + m₂)v’
+  (1000)(15) + (1500)(−5.0) = (2500)v’
+  15000 − 7500 = 2500v’
+  7500 = 2500v’
+  v’ = +3.0 m/s     (positive — the wreck moves in car 1's original direction)
+
+STEP 2 — check energy to confirm it's NOT elastic (sticking together is the giveaway,
+but verify with numbers):
+  KE_before = ½(1000)(15)² + ½(1500)(−5.0)² = 112500 + 18750 = 131250 J
+  KE_after  = ½(2500)(3.0)² = 11250 J
+  KE lost = 131250 − 11250 = 120000 J  (became heat, sound, deformation)
+
+CHECK   Momentum before: (1000)(15)+(1500)(−5) = 7500 kg·m/s.
+        Momentum after: (2500)(3.0) = 7500 kg·m/s.  — matches, as required.
+        KE dropped by ~91% — large energy loss is expected and correct for a
+        perfectly inelastic collision; it is NOT an error that KE isn't conserved.
+        Only momentum is guaranteed to be conserved in every collision type.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>In an explosion, total momentum is conserved. If the system started at rest, all fragment momenta must sum to zero.</TrapBox>
+            <TrapBox>Impulse = area under a force–time graph. This appears frequently as a graph-reading question on the exam.</TrapBox>
+            <TrapBox>Longer contact time → greater impulse for the same average force → greater change in momentum. This is why follow-through in sports matters.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Waves ──────────────────────────────────────────────────────────
+
+    function WavesTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.wav, marginBottom: 6 }}>Waves</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Frequency never changes when a wave enters a new medium. This is the single most-tested wave fact.</div>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Understanding It — Why Frequency Is the One Thing That Never Changes</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              A wave's frequency is set entirely by whatever is generating it — a vibrating hand on a rope, a vocal cord, an oscillating charge. The medium the wave travels through afterward has no way to "reach back" and change how fast the source is shaking; it can only affect how fast the disturbance propagates through it. So frequency is a property of the <em>source</em>, while speed is a property of the <em>medium</em>.
+              <br/><br/>
+              Since v = fλ must always hold, and f is locked by the source, if v changes (new medium) then λ <em>must</em> change to compensate — they're forced to move in the same direction as each other while f stays fixed. This single fact (f constant, v and λ both change together) is the reasoning behind almost every "what happens when a wave crosses a boundary" question, in sound, light, and water waves alike.
+            </div>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Key Equations</SectionTitle>
+            <MathBox color={C.wav}>{`v = fλ                      (wave speed = frequency × wavelength)
+T = 1/f                     (period = 1 / frequency)
+n₁ sinθ₁ = n₂ sinθ₂      (Snell’s Law — refraction at a boundary)
+sinθ_c = n₂/n₁             (critical angle — for total internal reflection)`}</MathBox>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim, marginTop: 6, lineHeight: 1.7 }}>
+              Critical angle applies when going from a denser medium (larger n) into a less dense medium (smaller n). At the critical angle, the refracted ray travels along the boundary.
+            </div>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Wave Types</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.wav }}>Transverse:</strong> Particles vibrate perpendicular to wave travel. Examples: light, string waves, all EM waves. Has crests and troughs.<br/><br/>
+              <strong style={{ color: C.wav }}>Longitudinal:</strong> Particles vibrate parallel to wave travel. Example: sound. Has compressions and rarefactions.
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Key Wave Phenomena</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.wav }}>Reflection:</strong> θ_incidence = θ_reflection. Both measured from the normal (perpendicular to surface), not the surface itself.<br/>
+              <strong style={{ color: C.wav }}>Refraction:</strong> Bends toward normal when slowing down (denser medium). Bends away when speeding up.<br/>
+              <strong style={{ color: C.wav }}>Diffraction:</strong> Effect largest when opening width ≈ wavelength.<br/>
+              <strong style={{ color: C.wav }}>Standing waves:</strong> Nodes = no movement. Antinodes = max displacement. Distance between adjacent nodes = λ/2.<br/>
+              <strong style={{ color: C.wav }}>Doppler effect:</strong> Source toward observer → higher frequency. Source away → lower frequency.
+            </div>
+          </Card>
+          <Card color={C.wav}>
+            <SectionTitle color={C.wav}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A sound wave with frequency 500 Hz travels through air (v = 340 m/s) and enters water (v = 1480 m/s). Find the wavelength in air and in water."</em>
+            </div>
+            <MathBox color={C.wav}>{`GIVENS      f = 500 Hz (constant across the boundary — source-controlled)
+            v_air = 340 m/s,  v_water = 1480 m/s
+UNKNOWN     λ_air = ?,  λ_water = ?
+
+STEP 1 — wavelength in air, using v = fλ:
+  λ_air = v_air / f = 340 / 500 = 0.68 m
+
+STEP 2 — wavelength in water. f is UNCHANGED (500 Hz — this is the whole point
+of the medium-crossing rule), only v and λ adjust:
+  λ_water = v_water / f = 1480 / 500 = 2.96 m
+
+CHECK   λ increased when the wave entered the faster medium (water), which is
+        consistent with v = fλ and f held fixed — faster speed at the same
+        frequency requires a longer wavelength. If a student had instead tried
+        to keep λ constant and solve for a "new frequency," they'd get f
+        changing, which contradicts the rule that the source — not the medium
+        — sets frequency. That's exactly the trap this problem is built to catch.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>Frequency NEVER changes when a wave changes medium. Speed and wavelength change. Frequency is set by the source.</TrapBox>
+            <TrapBox>Amplitude controls loudness (sound) or brightness (light). Frequency controls pitch (sound) or color (light). These are independent.</TrapBox>
+            <TrapBox>Reflection angles are measured from the NORMAL — the line perpendicular to the surface — not from the surface itself.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Electricity ────────────────────────────────────────────────────
+
+    function ElectricityTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.elec, marginBottom: 6 }}>Electricity & Magnetism</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Series vs. parallel is the core of every circuit problem. Get the rule table into memory before the exam.</div>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Understanding It — Why Series and Parallel Behave Oppositely</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Think of current as water flow and resistors as narrow sections of pipe. In <strong style={{ color: C.elec }}>series</strong>, every drop of water must pass through every narrow section one after another — there's only one path, so the current is forced to be identical everywhere along it, and each resistor "uses up" some of the available voltage (pressure) to push the same current through. Adding another resistor in series adds another obstacle in the only path, so total resistance always goes up.
+              <br/><br/>
+              In <strong style={{ color: C.elec }}>parallel</strong>, you instead give the water multiple side-by-side pipes to choose from. Each branch has the full pressure (voltage) across it independently, since each branch connects the same two points. Adding another branch doesn't make the existing paths any narrower — it just gives current an additional route, so total resistance to the flow always goes <em>down</em>, even though you added more resistors. This is the physical reason 1/R_p = Σ(1/R_i) uses a reciprocal sum instead of direct addition: you're adding <em>conductances</em> (how easily current flows), not resistances, and conductance is what direct addition applies to when branches are independent.
+            </div>
+          </Card>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Key Equations</SectionTitle>
+            <MathBox color={C.elec}>{`V   = IR                           (Ohm’s Law)
+P   = IV = I²R = V²/R             (power — three equivalent forms)
+R_s = R₁ + R₂ + …                 (series resistance — adds directly)
+1/R_p = 1/R₁ + 1/R₂ + …          (parallel resistance — reciprocal sum)
+F_e = kq₁q₂/r²                    (Coulomb’s Law)
+E   = F/q                          (electric field = force per unit charge)`}</MathBox>
+          </Card>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Series vs. Parallel</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[
+                { title: "Series", items: ["Current is the SAME throughout", "Voltage DIVIDES across each resistor", "Total resistance ADDS directly", "One component fails → all fail"] },
+                { title: "Parallel", items: ["Voltage is the SAME across each branch", "Current DIVIDES at each junction", "Total resistance less than smallest R", "One component fails → others keep working"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.elec}44`, borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: C.elec, marginBottom: 8 }}>{col.title}</div>
+                  {col.items.map(it => (
+                    <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.9 }}>• {it}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card color={C.elec}>
+            <SectionTitle color={C.elec}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A 6.0 Ω resistor is connected in series with a parallel combination of a 4.0 Ω and a 12 Ω resistor. The circuit is powered by a 9.0 V battery. Find the total resistance, total current, and the current through the 4.0 Ω resistor."</em>
+            </div>
+            <MathBox color={C.elec}>{`GIVENS   R₁ = 6.0 Ω (series), R₂ = 4.0 Ω, R₃ = 12 Ω (R₂ ∥ R₃), V = 9.0 V
+UNKNOWN  R_total = ?, I_total = ?, I through R₂ = ?
+
+STEP 1 — collapse the parallel pair into a single equivalent resistance first:
+  1/R_23 = 1/R₂ + 1/R₃ = 1/4.0 + 1/12 = 3/12 + 1/12 = 4/12
+  R_23 = 12/4 = 3.0 Ω
+
+STEP 2 — now it's a simple series circuit: R₁ in series with R_23.
+  R_total = R₁ + R_23 = 6.0 + 3.0 = 9.0 Ω
+
+STEP 3 — total current from the battery, using Ohm's Law on the whole circuit:
+  I_total = V/R_total = 9.0/9.0 = 1.0 A
+
+STEP 4 — find the voltage across the parallel section (this is the same for
+BOTH R₂ and R₃, since they're in parallel with each other):
+  V_23 = I_total × R_23 = (1.0)(3.0) = 3.0 V
+
+STEP 5 — current through R₂ specifically, using Ohm's Law on just that branch:
+  I_2 = V_23 / R₂ = 3.0 / 4.0 = 0.75 A
+
+CHECK   Current splits: I through R₂ (0.75 A) + I through R₃ (3.0/12 = 0.25 A)
+        = 1.0 A, which matches I_total — confirms current conservation at the
+        junction. R_23 (3.0 Ω) came out smaller than either 4.0 or 12 Ω, as
+        parallel resistance always must.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>In series, adding more resistors INCREASES total resistance. In parallel, adding more resistors DECREASES total resistance (more paths for current).</TrapBox>
+            <TrapBox>Ammeter: connected in SERIES (measures current flowing through it). Voltmeter: connected in PARALLEL (measures voltage across something).</TrapBox>
+            <TrapBox>Coulomb’s Law: like charges repel, opposite charges attract. Electric field lines go FROM positive TO negative.</TrapBox>
+            <TrapBox>For a device at non-rated voltage: find R from P = V²/R at rated voltage, then use that R for the new voltage.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Modern Physics ─────────────────────────────────────────────────
+
+    function ModernTab() {
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.mod, marginBottom: 6 }}>Modern Physics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Photon energy depends on frequency, not intensity. This distinction drives most of the exam questions here.</div>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Understanding It — Why Light Comes in Chunks</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Before the photoelectric effect, light was treated as a purely continuous wave — and a wave model predicts that brighter light (more energy per second hitting the metal) should always be able to eject electrons eventually, given enough time, regardless of color. That's not what happens: dim light above a certain frequency ejects electrons instantly, while extremely bright light below that frequency never ejects any, no matter how long you wait. That result only makes sense if light energy arrives in discrete packets (photons), each carrying a fixed amount E = hf tied to its frequency — not spread out continuously. A single electron absorbs a single photon; if that one photon doesn't carry enough energy to overcome the metal's work function φ, no amount of additional (equally weak) photons arriving later helps, because electrons don't "save up" energy from multiple photons.
+              <br/><br/>
+              This is the conceptual heart of Modern Physics on this exam: <strong style={{ color: C.mod }}>intensity is a headcount</strong> (how many photons arrive per second), while <strong style={{ color: C.mod }}>frequency determines the energy of each individual photon</strong>. They are independent dials. Turning up intensity gets you more ejected electrons (more photons, more hits); turning up frequency gets you faster-moving ejected electrons (more energetic hits) — and this exact independence is what nearly every Modern Physics question on the exam is testing, dressed up in different wording.
+            </div>
+          </Card>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Key Equations</SectionTitle>
+            <MathBox color={C.mod}>{`E       = hf                (photon energy — h = 6.63 × 10⁻³⁴ J·s)
+p       = h/λ               (photon momentum — light carries momentum with no rest mass)
+E       = mc²               (mass–energy equivalence)
+KE_max  = hf − φ            (photoelectric effect)
+                             φ = work function = minimum energy to eject an electron`}</MathBox>
+          </Card>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Photoelectric Effect — The Three Rules</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              <strong style={{ color: C.mod }}>Rule 1:</strong> Light below the threshold frequency f₀ = φ/h will not eject electrons — no matter how intense.<br/>
+              <strong style={{ color: C.mod }}>Rule 2:</strong> Above threshold, increasing intensity increases the <em>number</em> of electrons ejected — not their energy.<br/>
+              <strong style={{ color: C.mod }}>Rule 3:</strong> Above threshold, increasing frequency increases the maximum <em>kinetic energy</em> of ejected electrons: KE_max = hf − φ.
+            </div>
+          </Card>
+          <Card color={C.muted}>
+            <SectionTitle color={C.dim}>Wave–Particle Duality</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.8 }}>
+              Light behaves as a wave (interference, diffraction) and as a particle (photoelectric effect).<br/>
+              Electrons also behave as both — confirmed by electron diffraction experiments.<br/>
+              The speed of light in vacuum (c = 3.00 × 10⁸ m/s) is constant for all observers regardless of their motion.
+            </div>
+          </Card>
+          <Card color={C.mod}>
+            <SectionTitle color={C.mod}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>"A metal has a work function of 3.20 × 10⁻¹⁹ J. Light of frequency 7.50 × 10¹⁴ Hz shines on it. Find (a) the threshold frequency, (b) whether electrons are ejected, and (c) the maximum kinetic energy of any ejected electron."</em> (h = 6.63 × 10⁻³⁴ J·s)
+            </div>
+            <MathBox color={C.mod}>{`GIVENS   φ = 3.20 × 10⁻¹⁹ J,  f = 7.50 × 10¹⁴ Hz,  h = 6.63 × 10⁻³⁴ J·s
+UNKNOWN  f₀ = ?,  ejected? = ?,  KE_max = ?
+
+(a) THRESHOLD FREQUENCY — the minimum frequency where KE_max = 0:
+  f₀ = φ/h = (3.20 × 10⁻¹⁹) / (6.63 × 10⁻³⁴)
+  f₀ ≈ 4.83 × 10¹⁴ Hz
+
+(b) COMPARE — is the given frequency above threshold?
+  f (7.50 × 10¹⁴ Hz)  >  f₀ (4.83 × 10¹⁴ Hz)   →   YES, electrons are ejected.
+
+(c) MAXIMUM KINETIC ENERGY, using the photon energy above threshold:
+  KE_max = hf − φ
+  KE_max = (6.63 × 10⁻³⁴)(7.50 × 10¹⁴) − 3.20 × 10⁻¹⁹
+  KE_max = 4.97 × 10⁻¹⁹ − 3.20 × 10⁻¹⁹
+  KE_max ≈ 1.77 × 10⁻¹⁹ J
+
+CHECK   KE_max is positive, consistent with part (b)'s conclusion that ejection
+        happens — if the arithmetic had produced a negative KE_max, that would
+        contradict f > f₀ and signal an error to go back and find.
+        Note that if you doubled the light's INTENSITY instead of its frequency,
+        every number above (f₀, KE_max) would stay exactly the same — only the
+        number of ejected electrons per second would change. That's the
+        independence this whole topic is built around.`}</MathBox>
+          </Card>
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>E = hf is energy per photon. Intensity = number of photons per second. These are completely independent quantities.</TrapBox>
+            <TrapBox>E = mc²: in nuclear reactions, the "missing mass" literally became energy. Mass and energy are the same thing in different form.</TrapBox>
+            <TrapBox>p = h/λ: light carries momentum. Solar sails and comet tails are direct physical consequences of this.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Quick Reference ────────────────────────────────────────────────
+
+    function QuickRefTab() {
+      const eqTable = [
+        { topic: "Kinematics", eqs: "v = v₀+at  |  Δx = v₀t+½At²  |  v² = v₀²+2aΔx  |  Δx = ½(v+v₀)t" },
+        { topic: "Forces",     eqs: "F_net = ma  |  F_g = mg  |  F_f = μF_N" },
+        { topic: "Incline",    eqs: "F_N = mg cosθ  |  F_∥ = mg sinθ" },
+        { topic: "Circular",   eqs: "F_c = mv²/r  |  a_c = v²/r  |  v = 2πr/T" },
+        { topic: "Gravity",    eqs: "F_g = Gm₁m₂/r²" },
+        { topic: "Energy",     eqs: "KE = ½mv²  |  PE_g = mgh  |  PE_s = ½kx²  |  W = Fd cosθ  |  P = W/t" },
+        { topic: "Momentum",   eqs: "p = mv  |  J = FΔt = Δp  |  Σp_before = Σp_after" },
+        { topic: "Waves",      eqs: "v = fλ  |  T = 1/f  |  n₁ sinθ₁ = n₂ sinθ₂" },
+        { topic: "Electricity",eqs: "V = IR  |  P = IV = I²R = V²/R  |  R_s = ΣR  |  1/R_p = Σ(1/R)" },
+        { topic: "Modern",     eqs: "E = hf  |  E = mc²  |  KE_max = hf−φ  |  p = h/λ" },
+      ];
+      const units = [
+        ["Force F","Newton (N)"],["Energy / Work","Joule (J)"],["Power P","Watt (W)"],
+        ["Current I","Ampere (A)"],["Voltage V","Volt (V)"],["Resistance R","Ohm (Ω)"],
+        ["Frequency f","Hertz (Hz)"],["Wavelength λ","Meter (m)"],
+        ["Momentum p","kg·m/s"],["Charge q","Coulomb (C)"],
+      ];
+      const constants = [
+        ["g","9.81 m/s²"],["c","3.00 × 10⁸ m/s"],["h","6.63 × 10⁻³⁴ J·s"],
+        ["G","6.67 × 10⁻¹¹ N·m²/kg²"],["k","8.99 × 10⁹ N·m²/C²"],
+      ];
+      const prefixes = [
+        ["kilo (k)","10³"],["centi (c)","10⁻²"],["milli (m)","10⁻³"],
+        ["micro (μ)","10⁻⁶"],["nano (n)","10⁻⁹"],
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ref, marginBottom: 6 }}>Quick Reference</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>All equations, units, and constants on one page.</div>
+          <Card color={C.ref}>
+            <SectionTitle color={C.ref}>All Equations</SectionTitle>
+            {eqTable.map((row, i) => (
+              <div key={row.topic} style={{ display: "flex", gap: 16, padding: "8px 0", borderBottom: i < eqTable.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: C.dim, minWidth: 110 }}>{row.topic}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t, lineHeight: 1.8 }}>{row.eqs}</span>
+              </div>
+            ))}
+          </Card>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <Card color={C.ref}>
+              <SectionTitle color={C.ref}>Units</SectionTitle>
+              {units.map(([q, u]) => (
+                <div key={q} style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim }}>{q}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t }}>{u}</span>
+                </div>
+              ))}
+            </Card>
+            <div>
+              <Card color={C.ref}>
+                <SectionTitle color={C.ref}>Constants</SectionTitle>
+                {constants.map(([sym, val]) => (
+                  <div key={sym} style={{ display: "flex", gap: 10, marginBottom: 7 }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref, minWidth: 14 }}>{sym}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.t }}>{val}</span>
+                  </div>
+                ))}
+              </Card>
+              <Card color={C.ref}>
+                <SectionTitle color={C.ref}>Prefixes</SectionTitle>
+                {prefixes.map(([p, v]) => (
+                  <div key={p} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.dim }}>{p}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref }}>{v}</span>
+                  </div>
+                ))}
+              </Card>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Tab: Common Mistakes ────────────────────────────────────────────────
+
+    function TrapsTab() {
+      const traps = [
+        { n:"01", topic:"Kinematics", tc:"kin", trap:"Forgetting to write v₀ = 0 when an object ‘starts from rest.’", fix:"Write down ALL givens, including zeros. Zeros are information — dropping them is how the arithmetic breaks." },
+        { n:"02", topic:"Forces", tc:"frc", trap:"Using mg for the normal force on an incline.", fix:"F_N = mg cosθ on an incline. Always. Draw the free body diagram before writing any equation." },
+        { n:"03", topic:"Circular Motion", tc:"wav", trap:"Treating centripetal force as a separate force that exists on its own.", fix:"Ask: ‘What physical force is pointing toward the center?’ That force is the centripetal force. Never an extra force." },
+        { n:"04", topic:"Momentum", tc:"mom", trap:"Forgetting that momentum is a vector.", fix:"Assign a positive direction and a negative direction at the start of every collision or impulse problem." },
+        { n:"05", topic:"Waves", tc:"wav", trap:"Thinking period and frequency are the same thing.", fix:"T = 1/f. Period = seconds per cycle. Frequency = cycles per second. They are reciprocals." },
+        { n:"06", topic:"Waves", tc:"wav", trap:"Thinking frequency changes when a wave enters a new medium.", fix:"Frequency NEVER changes. Only wave speed and wavelength change. The source controls the frequency." },
+        { n:"07", topic:"Energy", tc:"ene", trap:"Forgetting to square the velocity in the kinetic energy formula.", fix:"KE = ½mv². Double the speed → four times the kinetic energy. The exponent matters." },
+        { n:"08", topic:"Electricity", tc:"elec", trap:"Applying the series formula in a parallel circuit (or vice versa).", fix:"Series: add R directly (result is larger). Parallel: reciprocal sum (result is smaller than the smallest R)." },
+        { n:"09", topic:"Modern Physics", tc:"mod", trap:"Confusing photon energy with light intensity.", fix:"E = hf is energy per individual photon. Intensity = number of photons per second. They are independent." },
+        { n:"10", topic:"Kinematics", tc:"kin", trap:"Picking a kinematics equation before identifying the missing variable.", fix:"Write givens first. Identify what’s missing. Pick the equation that does not contain the missing variable." },
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.err, marginBottom: 6 }}>Common Mistakes</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>The ten highest-frequency error patterns. Each trap has a fix.</div>
+          {traps.map(t => (
+            <Card key={t.n} color={C.err}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 18, color: C.err, minWidth: 28 }}>{t.n}</span>
+                <Badge color={C[t.tc]}>{t.topic}</Badge>
+              </div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 8 }}>
+                <strong style={{ color: C.err }}>Trap: </strong>{t.trap}
+              </div>
+              <div style={{ background: `${C.ene}0f`, border: `0.5px solid ${C.ene}33`, borderRadius: 6, padding: "9px 13px", fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.ene, lineHeight: 1.6 }}>
+                <strong>Fix: </strong>{t.fix}
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    // ─── Tab: Optics ─────────────────────────────────────────────────────────
+
+    function OpticsTab() {
+      const signRows = [
+        ["f (focal length)", "Converging mirror/lens", "Diverging mirror/lens"],
+        ["d_o (object dist.)", "Real object — always", "Virtual object — rare"],
+        ["d_i (image dist.)", "Real image (same side as reflected/refracted light)", "Virtual image (opposite side)"],
+        ["M (magnification)", "Upright image", "Inverted image"],
+      ];
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.opt, marginBottom: 6 }}>Optics</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 24 }}>Mirrors, lenses, reflection, and refraction. Every angle is measured from the normal — never from the surface itself.</div>
+
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Understanding It — Why Light Bends at All</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.85 }}>
+              Refraction happens because light changes speed when it enters a new medium, but frequency (set by the source, same rule as sound and water waves) stays fixed. If part of a light beam enters the new medium before the rest — which happens at any angle other than straight-on — the part that's already inside is moving at the new (slower or faster) speed while the rest is still at the old speed. That speed mismatch across the wavefront is exactly what turns the beam, the same way a car veers if one side of it hits mud while the other stays on pavement. Steeper entry angle → bigger speed mismatch across the wavefront → sharper bend, which is why Snell's Law is written in terms of sines of the angle, not the angle itself.
+              <br/><br/>
+              Mirrors and lenses both work by using this bending (or reflection) to redirect many rays from a single point on an object so they all reconverge at a single point — the image. A <em>real</em> image is where the rays actually cross; the light is really there, which is why you can put a screen at that spot and see it. A <em>virtual</em> image is where the rays only <em>appear</em> to come from if you trace them backward — no light actually converges there, which is why you can't project it on a screen, only look into the mirror or lens to see it.
+            </div>
+          </Card>
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Key Equations</SectionTitle>
+            <MathBox color={C.opt}>{`n₁ sin θ₁ = n₂ sin θ₂       (Snell’s Law — refraction at a boundary)\nsin θ_c = n₂/n₁               (critical angle — total internal reflection, n₁ > n₂)\n1/f = 1/d_o + 1/d_i           (mirror and lens equation)\nM = −d_i/d_o = h_i/h_o        (magnification — negative M = inverted image)\nn = c/v                        (index of refraction — n ≥ 1 always)\nc = fλ = 3.00 × 10⁸ m/s       (light in vacuum — same wave equation as all waves)`}</MathBox>
+          </Card>
+
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Reflection — Mirrors</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.8, marginBottom: 12 }}>
+              <strong style={{ color: C.opt }}>Law of Reflection:</strong> θ_incidence = θ_reflection. Both measured from the <em>normal</em> (line perpendicular to the surface), not from the surface itself.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              {[
+                { title: "Plane (flat) mirror", items: ["Virtual image (behind the mirror)", "Image distance = object distance", "Magnification = 1 (same size, upright)", "Left–right reversed"] },
+                { title: "Concave mirror (curves inward)", items: ["f = R/2 — positive", "Real image when d_o > f", "Virtual image when d_o < f", "Can magnify (makeup mirrors)"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.opt}44`, borderRadius: 8, padding: "10px 13px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.opt, marginBottom: 7 }}>{col.title}</div>
+                  {col.items.map(it => <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>• {it}</div>)}
+                </div>
+              ))}
+            </div>
+            <div style={{ background: "#0e1014", border: `0.5px solid ${C.opt}44`, borderRadius: 8, padding: "10px 13px", marginBottom: 12 }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.opt, marginBottom: 7 }}>Convex mirror (curves outward)</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>f is negative. Always produces virtual, upright, reduced images — no exceptions regardless of object distance. Used for wide-angle coverage (security mirrors, car side mirrors).</div>
+            </div>
+            <SectionTitle color={C.dim}>Ray Diagram Rules — Mirrors</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              • Ray parallel to principal axis → reflects through the focal point.<br/>
+              • Ray through the focal point → reflects parallel to the principal axis.<br/>
+              • Ray through the center of curvature → reflects straight back on itself.<br/>
+              Image: where reflected rays intersect (real image, in front) or where their extensions behind the mirror intersect (virtual image).
+            </div>
+          </Card>
+
+          <Card color={C.frc}>
+            <SectionTitle color={C.frc}>Refraction &amp; Lenses</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9, marginBottom: 12 }}>
+              <strong style={{ color: C.frc }}>Index of refraction:</strong> n = c/v. n ≥ 1 always. Higher n means light travels slower in that medium.<br/>
+              • Entering a denser medium (higher n) → bends <strong style={{ color: C.frc }}>toward</strong> the normal.<br/>
+              • Entering a less dense medium (lower n) → bends <strong style={{ color: C.frc }}>away</strong> from the normal.<br/><br/>
+              <strong style={{ color: C.frc }}>Total Internal Reflection:</strong> When light goes from high n to low n at an angle greater than the critical angle θ_c, 100% of the light reflects — none passes through. Only possible going from high n to low n. This is how fiber optics work.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              {[
+                { title: "Converging (convex) lens", items: ["Thicker in the middle", "f is positive", "Real image when d_o > f", "Virtual image when d_o < f"] },
+                { title: "Diverging (concave) lens", items: ["Thinner in the middle", "f is negative", "Always virtual, upright, reduced", "Never produces a real image"] },
+              ].map(col => (
+                <div key={col.title} style={{ background: "#0e1014", border: `0.5px solid ${C.frc}44`, borderRadius: 8, padding: "10px 13px" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.frc, marginBottom: 7 }}>{col.title}</div>
+                  {col.items.map(it => <div key={it} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, lineHeight: 1.85 }}>• {it}</div>)}
+                </div>
+              ))}
+            </div>
+            <SectionTitle color={C.dim}>Ray Diagram Rules — Lenses</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.9 }}>
+              • Ray parallel to principal axis → refracts through the focal point on the far side.<br/>
+              • Ray through the center of the lens → passes straight through with no bending.<br/>
+              • Ray through the focal point on the object side → emerges parallel to the principal axis.<br/>
+              Image: where refracted rays intersect on the far side (real image) or where back-extensions intersect on the same side as the object (virtual image).
+            </div>
+          </Card>
+
+          <Card color={C.opt}>
+            <SectionTitle color={C.opt}>Worked Example — Full Protocol</SectionTitle>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13.5, color: C.t, lineHeight: 1.7, marginBottom: 10 }}>
+              <em>Part 1 (refraction): "Light travels from glass (n = 1.50) into air (n = 1.00) at an angle of 25° from the normal. Find the refracted angle, and state whether total internal reflection is possible for this pair of media."</em><br/><br/>
+              <em>Part 2 (lens): "An object is placed 30 cm in front of a converging lens with focal length 10 cm. Find the image distance and magnification."</em>
+            </div>
+            <MathBox color={C.opt}>{`PART 1
+GIVENS   n₁ = 1.50 (glass), n₂ = 1.00 (air), θ₁ = 25°
+UNKNOWN  θ₂ = ?
+
+  n₁ sinθ₁ = n₂ sinθ₂
+  (1.50)(sin 25°) = (1.00) sinθ₂
+  (1.50)(0.4226) = sinθ₂
+  sinθ₂ = 0.634  →  θ₂ ≈ 39.3°
+
+  Going glass → air is high n → low n, so TIR IS possible at some angle.
+  Find the critical angle: sinθ_c = n₂/n₁ = 1.00/1.50 = 0.667 → θ_c ≈ 41.8°.
+  Since 25° < θ_c, this particular ray still refracts through — it has not yet
+  reached the critical angle. TIR would only occur for angles ≥ 41.8°.
+
+PART 2
+GIVENS   d_o = 30 cm, f = +10 cm (converging → positive)
+UNKNOWN  d_i = ?, M = ?
+
+  1/f = 1/d_o + 1/d_i
+  1/10 = 1/30 + 1/d_i
+  1/d_i = 1/10 − 1/30 = 3/30 − 1/30 = 2/30
+  d_i = 15 cm                          (positive → real image)
+
+  M = −d_i/d_o = −15/30 = −0.5      (negative → inverted, |M|<1 → reduced)
+
+CHECK   Part 1: θ₂ > θ₁ (39.3° > 25°) — correct direction, since light bends
+        AWAY from the normal entering a less-dense medium (air).
+        Part 2: d_o > f (30 > 10) for a converging lens → real image expected,
+        and d_i came out positive — consistent. This matches a real camera or
+        eye scenario: object beyond the focal length produces a real, inverted,
+        reduced image, exactly as this calculation shows.`}</MathBox>
+          </Card>
+
+          <Card color={C.ref}>
+            <SectionTitle color={C.ref}>Sign Conventions — Memorize These</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "130px 1fr 1fr", rowGap: 0 }}>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.dim, padding: "7px 0 7px 0", borderBottom: `0.5px solid ${C.cardBorder}` }}>Quantity</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.ene, padding: "7px 8px", borderBottom: `0.5px solid ${C.cardBorder}` }}>Positive (+)</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.err, padding: "7px 8px", borderBottom: `0.5px solid ${C.cardBorder}` }}>Negative (−)</span>
+              {signRows.map(([q, pos, neg], i) => (
+                <React.Fragment key={q}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.ref, padding: "7px 0", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{q}</span>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, padding: "7px 8px", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{pos}</span>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12.5, color: C.t, padding: "7px 8px", borderBottom: i < signRows.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>{neg}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </Card>
+
+          <Card color={C.err}>
+            <SectionTitle color={C.err}>Traps</SectionTitle>
+            <TrapBox>The angle in Snell’s Law is measured from the NORMAL, not from the surface. Measuring from the surface gives the wrong angle — this costs points constantly.</TrapBox>
+            <TrapBox>Total internal reflection ONLY happens when light goes from HIGH n to LOW n (denser to less dense). Never the reverse.</TrapBox>
+            <TrapBox>For mirrors: f = R/2. A mirror with radius of curvature 20 cm has f = 10 cm. Don’t substitute R directly into the mirror equation — use f.</TrapBox>
+            <TrapBox>Real images can be projected onto a screen. Virtual images cannot — they only appear when you look through (or into) the mirror or lens.</TrapBox>
+            <TrapBox>Negative magnification means the image is INVERTED — not that it’s smaller. Size is |M|. M = −3 means 3× larger and inverted.</TrapBox>
+            <TrapBox>Frequency stays the same when light changes medium. Speed (v = c/n) and wavelength change. Same rule as all waves — the source controls the frequency.</TrapBox>
+          </Card>
+        </div>
+      );
+    }
+
+    // ─── Tab: Speed Drills ───────────────────────────────────────────────────
+
+    function DrillsTab() {
+      const [shuffled, setShuffled] = useState(() => shuffle(DRILLS));
+      const [idx, setIdx] = useState(0);
+      const [revealed, setRevealed] = useState(false);
+      const [correct, setCorrect] = useState(0);
+      const [answered, setAnswered] = useState(0);
+      const [done, setDone] = useState(false);
+      const [history, setHistory] = useState([]);
+
+      useEffect(() => {
+        try {
+          const val = localStorage.getItem("phys-reg-drill-history");
+          if (val) setHistory(JSON.parse(val));
+        } catch (_) {}
+      }, []);
+
+      const handleAnswer = (wasCorrect) => {
+        const nc = wasCorrect ? correct + 1 : correct;
+        const na = answered + 1;
+        setCorrect(nc);
+        setAnswered(na);
+        if (na >= shuffled.length) {
+          const entry = { date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), score: nc, total: shuffled.length };
+          const nh = [entry, ...history].slice(0, 10);
+          setHistory(nh);
+          try { localStorage.setItem("phys-reg-drill-history", JSON.stringify(nh)); } catch (_) {}
+          setDone(true);
+        } else {
+          setIdx(idx + 1);
+          setRevealed(false);
+        }
+      };
+
+      const reset = () => {
+        setShuffled(shuffle(DRILLS));
+        setIdx(0); setRevealed(false);
+        setCorrect(0); setAnswered(0); setDone(false);
+      };
+
+      const HistoryBlock = () => history.length > 0 ? (
+        <Card color={C.ref} style={{ marginTop: 32 }}>
+          <SectionTitle color={C.ref}>Past Sessions</SectionTitle>
+          {history.map((h, i) => {
+            const pct = Math.round((h.score / h.total) * 100);
+            return (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: i < history.length - 1 ? `0.5px solid ${C.cardBorder}` : "none" }}>
+                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.dim }}>{h.date}</span>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: pct >= 80 ? C.ene : pct >= 60 ? C.kin : C.err }}>{h.score}/{h.total}</span>
+              </div>
+            );
+          })}
+        </Card>
+      ) : null;
+
+      if (done) {
+        const pct = Math.round((correct / shuffled.length) * 100);
+        const msg = pct >= 90 ? "Everything is solid. You’re ready." : pct >= 70 ? "Good. Review the problems you missed." : "Keep going — every miss is a gap you found before the exam.";
+        return (
+          <div>
+            <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>Speed Drills</div>
+            <div style={{ textAlign: "center", padding: "48px 0 32px" }}>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: 28, color: C.pro, marginBottom: 8 }}>Session Complete</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, color: C.t, marginBottom: 6 }}>{correct} / {shuffled.length}</div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 28 }}>{msg}</div>
+              <button onClick={reset} style={{ background: `${C.pro}20`, border: `1px solid ${C.pro}55`, color: C.pro, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>New Session</button>
+            </div>
+            <HistoryBlock />
+          </div>
+        );
+      }
+
+      const cur = shuffled[idx];
+      const color = C[cur.color] || C.dim;
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.pro, marginBottom: 6 }}>Speed Drills</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 20 }}>Answer before you reveal. One problem at a time.</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.dim }}>Problem {idx + 1} of {shuffled.length}</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: C.t }}>Score: <span style={{ color: C.pro }}>{correct}</span> / {answered}</span>
+          </div>
+          <div style={{ height: 3, background: C.cardBorder, borderRadius: 2, marginBottom: 24 }}>
+            <div style={{ height: 3, width: `${(idx / shuffled.length) * 100}%`, background: color, borderRadius: 2, transition: "width 0.3s ease" }} />
+          </div>
+          <Card color={color}>
+            <div style={{ marginBottom: 12 }}><Badge color={color}>{cur.topic}</Badge></div>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 15.5, color: C.t, lineHeight: 1.75 }}>{cur.problem}</div>
+          </Card>
+          {!revealed ? (
+            <div style={{ textAlign: "center", marginTop: 20 }}>
+              <button onClick={() => setRevealed(true)} style={{ background: `${color}1a`, border: `1px solid ${color}55`, color, borderRadius: 8, padding: "11px 36px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>Show Answer</button>
+            </div>
+          ) : (
+            <div>
+              <Card color={C.ene} style={{ marginTop: 8 }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 15, color: C.ene, marginBottom: 10 }}>{cur.answer}</div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, color: C.dim, lineHeight: 1.8, whiteSpace: "pre-line" }}>{cur.hint}</div>
+              </Card>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 16 }}>
+                <button onClick={() => handleAnswer(true)} style={{ background: `${C.ene}1a`, border: `1px solid ${C.ene}55`, color: C.ene, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>✓ Got it</button>
+                <button onClick={() => handleAnswer(false)} style={{ background: `${C.err}14`, border: `1px solid ${C.err}44`, color: C.err, borderRadius: 8, padding: "10px 28px", fontFamily: "'Outfit', sans-serif", fontSize: 14 }}>✗ Missed it</button>
+              </div>
+            </div>
+          )}
+          <HistoryBlock />
+        </div>
+      );
+    }
+
+    // ─── Tab: Notes ──────────────────────────────────────────────────────────
+
+    function NotesTab() {
+      const [section, setSection] = useState(NOTE_SECTIONS[0]);
+      const [notes, setNotes] = useState({});
+      const [saved, setSaved] = useState(false);
+
+      useEffect(() => {
+        const loaded = {};
+        for (let i = 0; i < NOTE_SECTIONS.length; i++) {
+          try {
+            const val = localStorage.getItem(`phys-reg-note-${i}`);
+            if (val) loaded[NOTE_SECTIONS[i]] = val;
+          } catch (_) {}
+        }
+        setNotes(loaded);
+      }, []);
+
+      const handleChange = (val) => {
+        setNotes(prev => ({ ...prev, [section]: val }));
+        const i = NOTE_SECTIONS.indexOf(section);
+        try {
+          localStorage.setItem(`phys-reg-note-${i}`, val);
+          setSaved(true);
+          setTimeout(() => setSaved(false), 1500);
+        } catch (_) {}
+      };
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Lora', serif", fontSize: 22, color: C.ref, marginBottom: 6 }}>Notes</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, color: C.dim, marginBottom: 20 }}>Your personal notes, saved automatically per section.</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+            {NOTE_SECTIONS.map(s => {
+              const active = s === section;
+              return (
+                <button key={s} onClick={() => setSection(s)} style={{ background: active ? `${C.ref}20` : "transparent", border: `0.5px solid ${active ? C.ref : C.cardBorder}`, color: active ? C.ref : C.dim, borderRadius: 6, padding: "5px 12px", fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ position: "relative" }}>
+            {saved && <div style={{ position: "absolute", top: 12, right: 14, zIndex: 1, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.ene }}>saved ✓</div>}
+            <textarea
+              value={notes[section] || ""}
+              onChange={e => handleChange(e.target.value)}
+              placeholder={`Your notes for ${section}…`}
+              style={{ width: "100%", minHeight: 340, background: C.card, border: `0.5px solid ${C.cardBorder}`, borderLeft: `3px solid ${C.ref}`, borderRadius: 12, padding: "16px 18px", color: C.t, resize: "vertical", fontFamily: "'Outfit', sans-serif", fontSize: 14, lineHeight: 1.85, outline: "none" }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Root ─────────────────────────────────────────────────────────────────
+
+    function PhysicsRegentsNotebook() {
+      const [tab, setTab] = useState("protocol");
+      const tabColors = {
+        protocol: C.pro, kin: C.kin, forces: C.frc, circular: C.wav,
+        energy: C.ene, momentum: C.mom, waves: C.wav, optics: C.opt, elec: C.elec,
+        modern: C.mod, qref: C.ref, traps: C.err, drills: C.pro, notes: C.ref,
+      };
+      const renderContent = () => {
+        switch (tab) {
+          case "protocol":  return <ProtocolTab />;
+          case "kin":       return <KinematicsTab />;
+          case "forces":    return <ForcesTab />;
+          case "circular":  return <CircularTab />;
+          case "energy":    return <EnergyTab />;
+          case "momentum":  return <MomentumTab />;
+          case "waves":     return <WavesTab />;
+          case "optics":    return <OpticsTab />;
+          case "elec":      return <ElectricityTab />;
+          case "modern":    return <ModernTab />;
+          case "qref":      return <QuickRefTab />;
+          case "traps":     return <TrapsTab />;
+          case "drills":    return <DrillsTab />;
+          case "notes":     return <NotesTab />;
+          default:          return null;
+        }
+      };
+      return (
+        <div style={{ fontFamily: "'Outfit', sans-serif", background: C.bg, minHeight: "100vh", display: "flex" }}>
+          <div style={{ width: 214, background: C.sb, borderRight: `0.5px solid ${C.sbBorder}`, padding: "28px 0", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", overflowY: "auto", flexShrink: 0 }}>
+            <div style={{ padding: "0 20px 24px" }}>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: 13.5, color: C.t, lineHeight: 1.4, marginBottom: 4 }}>Physics Regents</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: C.muted }}>Survival Guide</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {TABS.map(t => {
+                const active = tab === t.id;
+                const color = tabColors[t.id] || C.dim;
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)} style={{ width: "100%", textAlign: "left", background: active ? `${color}18` : "transparent", border: "none", borderLeft: active ? `2px solid ${color}` : "2px solid transparent", padding: "9px 20px", fontFamily: "'Outfit', sans-serif", fontSize: 12.5, fontWeight: active ? 500 : 400, color: active ? color : C.dim }}>
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ padding: "20px 20px 0", borderTop: `0.5px solid ${C.sbBorder}` }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: C.muted, lineHeight: 1.6 }}>Physics Regents<br/>Survival Guide</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, padding: "40px 48px", overflowY: "auto" }}>
+            <div style={{ maxWidth: 760 }}>
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<PhysicsRegentsNotebook />);
+  </script>
+</body>
+</html>
